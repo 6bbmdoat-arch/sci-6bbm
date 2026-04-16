@@ -1287,17 +1287,29 @@ function renderEquipment(){
       <span class="pill ${sp[eq.st]}">${slbl[eq.st]}</span>
       <div style="font-size:11px;color:var(--text2);margin-top:5px">Qtd: <strong>${eq.qty}</strong>${eq.loc?' · '+eq.loc:''}</div>
       ${eq.obs?`<div style="font-size:11px;color:var(--text3);margin-top:3px">${eq.obs}</div>`:''}
-      <select class="rc-sel" onchange="chgEqSt('${eq.id}',this.value)">
-        <option value="available" ${eq.st==='available'?'selected':''}>Disponível</option>
-        <option value="deployed"  ${eq.st==='deployed' ?'selected':''}>Em Uso</option>
-        <option value="maintenance" ${eq.st==='maintenance'?'selected':''}>Manutenção</option>
-      </select>
+      <div style="display:flex;gap:6px;margin-top:8px;align-items:center">
+        <select class="rc-sel" style="flex:1;margin-top:0" onchange="chgEqSt('${eq.id}',this.value)">
+          <option value="available" ${eq.st==='available'?'selected':''}>Disponível</option>
+          <option value="deployed"  ${eq.st==='deployed' ?'selected':''}>Em Uso</option>
+          <option value="maintenance" ${eq.st==='maintenance'?'selected':''}>Manutenção</option>
+        </select>
+        <button onclick="delEquipment('${eq.id}')" title="Remover"
+          style="flex-shrink:0;background:var(--red-bg);border:1px solid var(--red-br);color:var(--red-l);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px;line-height:1">✕</button>
+      </div>
     </div>`).join('');
 }
 
 function chgEqSt(id,st){
   const eq=DB.equipment.find(x=>x.id===id);
   if(eq){eq.st=st;if(typeof fbSet==='function')fbSet('equipment/'+id+'/st',st);renderEquipment();renderDashEq();}
+}
+function delEquipment(id){
+  if(!confirm('Remover equipamento '+id+'?'))return;
+  DB.equipment=DB.equipment.filter(e=>e.id!==id);
+  if(typeof fbRemove==='function') fbRemove('equipment/'+id);
+  renderEquipment();renderDashEq();metrics();
+  addLog(`Equipamento removido: <strong>${id}</strong>`,'info');
+  toast(id+' removido!','info');
 }
 
 function renderDashEq(){
@@ -1365,17 +1377,34 @@ function rcHTML(r){
     <span class="pill ${sp}">${slbl}</span>
     ${r.crew?`<div style="font-size:11px;color:var(--text2);margin-top:6px">👥 ${r.crew}</div>`:''}
     ${r.obs?`<div style="font-size:11px;color:var(--text3);margin-top:3px">${r.obs}</div>`:''}
-    <select class="rc-sel" onchange="chgSt('${r.id}','${r.type}',this.value)">
-      <option value="available" ${r.st==='available'?'selected':''}>Disponível</option>
-      <option value="deployed" ${r.st==='deployed'?'selected':''}>Em Operação</option>
-      <option value="maintenance" ${r.st==='maintenance'?'selected':''}>Manutenção</option>
-    </select>
+    <div style="display:flex;gap:6px;margin-top:8px;align-items:center">
+      <select class="rc-sel" style="flex:1;margin-top:0" onchange="chgSt('${r.id}','${r.type}',this.value)">
+        <option value="available" ${r.st==='available'?'selected':''}>Disponível</option>
+        <option value="deployed" ${r.st==='deployed'?'selected':''}>Em Operação</option>
+        <option value="maintenance" ${r.st==='maintenance'?'selected':''}>Manutenção</option>
+      </select>
+      <button onclick="delRes('${r.id}','${r.type}')" title="Remover"
+        style="flex-shrink:0;background:var(--red-bg);border:1px solid var(--red-br);color:var(--red-l);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px;line-height:1">✕</button>
+    </div>
   </div>`;
 }
 function chgSt(id,type,st){
   const list=type==='vehicle'?DB.vehicles:type==='aircraft'?DB.aircraft:DB.vessels;
   const r=list.find(x=>x.id===id);
   if(r){r.st=st;fbUpdateResourceStatus(id,type,st);renderVehicles();renderAircraft();renderVessels();renderDashRes();metrics();}
+}
+function delRes(id,type){
+  if(!confirm('Remover '+id+'?'))return;
+  if(type==='vehicle')    DB.vehicles=DB.vehicles.filter(r=>r.id!==id);
+  else if(type==='aircraft') DB.aircraft=DB.aircraft.filter(r=>r.id!==id);
+  else                    DB.vessels=DB.vessels.filter(r=>r.id!==id);
+  if(typeof fbRemove==='function'){
+    const node=type==='vehicle'?'vehicles':type==='aircraft'?'aircraft':'vessels';
+    fbRemove(node+'/'+id);
+  }
+  renderVehicles();renderAircraft();renderVessels();renderDashRes();metrics();
+  addLog(`Recurso removido: <strong>${id}</strong>`,'info');
+  toast(id+' removido!','info');
 }
 function renderVehicles(){document.getElementById('v-cards').innerHTML=DB.vehicles.map(rcHTML).join('')}
 function renderAircraft(){document.getElementById('a-cards').innerHTML=DB.aircraft.map(rcHTML).join('')}
