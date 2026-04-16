@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCI – 6º BBM | Sistema de Comando de Incidentes</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#090b0f;--bg2:#0d1117;--bg3:#131923;--bg4:#1a2233;--bg5:#1f2a3d;
+  --border:#22304a;--border2:#2e4166;
+  --accent:#e8a020;--accent2:#f5bc45;
+  --red:#d43535;--red-l:#ff5555;--red-bg:rgba(212,53,53,0.08);--red-br:rgba(212,53,53,0.3);
+  --blue:#1a6fd4;--blue-l:#5ba3f5;--blue-bg:rgba(26,111,212,0.08);--blue-br:rgba(26,111,212,0.3);
+  --amber:#c48a10;--amber-l:#f5bc45;--amber-bg:rgba(196,138,16,0.08);--amber-br:rgba(196,138,16,0.3);
+  --green:#1a9150;--green-l:#3dd68c;--green-bg:rgba(26,145,80,0.08);--green-br:rgba(26,145,80,0.3);
+  --gray-l:#8fa0b8;--gray-d:#3a4d6a;
+  --text:#dde6f5;--text2:#7a90ab;--text3:#445566;
+  --fd:'Rajdhani',sans-serif;--fb:'IBM Plex Sans',sans-serif;--fm:'IBM Plex Mono',monospace;
+  --r:5px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--fb);overflow:hidden}
+
+/* ── HEADER ── */
+.hdr{
+  position:fixed;top:0;left:0;right:0;z-index:200;height:52px;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 18px;
+}
+.hdr-l{display:flex;align-items:center;gap:12px}
+.logo{width:34px;height:34px;background:var(--red);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-weight:700;font-size:12px;color:#fff;letter-spacing:.5px;flex-shrink:0}
+.hdr-title{font-family:var(--fd);font-size:19px;font-weight:700;letter-spacing:1px}
+.hdr-sub{font-size:10px;color:var(--text3);font-family:var(--fm)}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.live-badge{display:flex;align-items:center;gap:5px;font-size:10px;font-family:var(--fm);color:var(--green-l);border:1px solid var(--green-br);border-radius:3px;padding:2px 7px}
+.live-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green-l);animation:blink 1.4s infinite;display:block}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.clock{font-family:var(--fm);font-size:13px;color:var(--accent2)}
+.btn-inc{background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:6px 14px;font-family:var(--fd);font-weight:700;font-size:14px;letter-spacing:.5px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s}
+.btn-inc:hover{background:var(--red-l)}
+
+/* ── LAYOUT ── */
+.layout{display:flex;height:calc(100vh - 52px);margin-top:52px}
+
+/* ── SIDEBAR ── */
+.sb{width:190px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.sb::-webkit-scrollbar{width:3px}.sb::-webkit-scrollbar-thumb{background:var(--border)}
+.inc-box{margin:10px 8px;padding:10px 12px;background:var(--red-bg);border:1px solid var(--red-br);border-radius:var(--r)}
+.inc-box-lbl{font-size:9px;font-family:var(--fm);color:var(--red-l);letter-spacing:1px;margin-bottom:4px}
+.inc-box-name{font-size:12px;font-weight:600;line-height:1.3}
+.inc-box-time{font-size:10px;font-family:var(--fm);color:var(--text3);margin-top:3px}
+.sb-sect{padding:10px 8px 2px}
+.sb-lbl{font-size:9px;font-family:var(--fm);color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px 5px}
+.nav{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);transition:all .12s;position:relative}
+.nav:hover{background:var(--bg3);color:var(--text)}
+.nav.active{background:rgba(232,160,32,.1);color:var(--accent2)}
+.nav.active::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--accent);border-radius:0 2px 2px 0}
+.nav-ico{font-size:14px;width:16px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-family:var(--fm);padding:1px 5px;border-radius:3px}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;padding:18px;background:var(--bg)}
+.main::-webkit-scrollbar{width:4px}.main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ── VIEWS ── */
+.view{display:none}.view.active{display:block}
+
+/* ── SECTION HEADER ── */
+.s-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.s-title{font-family:var(--fd);font-size:21px;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
+.s-tag{font-size:9px;font-family:var(--fm);background:rgba(232,160,32,.12);color:var(--accent);border:1px solid rgba(232,160,32,.25);padding:2px 7px;border-radius:3px;letter-spacing:1px}
+
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+/* ── CARD ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-ttl{font-family:var(--fd);font-size:13px;font-weight:600;letter-spacing:.5px;color:var(--text2);text-transform:uppercase}
+.ct-red{border-top:2px solid var(--red)}
+.ct-blue{border-top:2px solid var(--blue-l)}
+.ct-amber{border-top:2px solid var(--amber-l)}
+.ct-green{border-top:2px solid var(--green-l)}
+
+/* ── METRIC ── */
+.met{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px}
+.met-lbl{font-size:9px;font-family:var(--fm);color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+.met-val{font-family:var(--fd);font-size:28px;font-weight:700;line-height:1}
+.met-val.red{color:var(--red-l)}.met-val.amber{color:var(--amber-l)}.met-val.green{color:var(--green-l)}.met-val.blue{color:var(--blue-l)}
+.met-sub{font-size:11px;color:var(--text3);margin-top:3px}
+
+/* ── PILLS ── */
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-family:var(--fm);font-weight:600;padding:2px 7px;border-radius:3px;letter-spacing:.5px;white-space:nowrap}
+.pill::before{content:'';width:4px;height:4px;border-radius:50%;background:currentColor;flex-shrink:0}
+.p-green{background:var(--green-bg);color:var(--green-l);border:1px solid var(--green-br)}
+.p-red{background:var(--red-bg);color:var(--red-l);border:1px solid var(--red-br)}
+.p-amber{background:var(--amber-bg);color:var(--amber-l);border:1px solid var(--amber-br)}
+.p-blue{background:var(--blue-bg);color:var(--blue-l);border:1px solid var(--blue-br)}
+.p-gray{background:rgba(58,77,106,.25);color:var(--gray-l);border:1px solid rgba(58,77,106,.5)}
+.p-purple{background:rgba(130,80,200,.15);color:#c090ff;border:1px solid rgba(130,80,200,.3)}
+
+/* ── SCI STRUCTURE ── */
+
+/* Slot genérico */
+.slot{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+  padding:10px 12px;display:flex;align-items:center;gap:10px;
+  cursor:pointer;transition:border-color .12s;position:relative;min-width:0;
+}
+.slot:hover{border-color:var(--border2)}
+.slot.filled{border-color:rgba(61,214,140,.35)}
+.slot-icon{width:32px;height:32px;border-radius:4px;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.slot-info{flex:1;min-width:0}
+.slot-role{font-size:9px;font-family:var(--fm);color:var(--text3);letter-spacing:.5px;text-transform:uppercase}
+.slot-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.slot-rank{font-size:10px;color:var(--text3)}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-on{background:var(--green-l);box-shadow:0 0 5px rgba(61,214,140,.5)}
+.dot-off{background:var(--border2)}
+
+/* Comandante */
+.ci-slot{
+  background:rgba(232,160,32,.07);border:1px solid rgba(232,160,32,.4);border-radius:var(--r);
+  padding:14px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;
+  transition:border-color .12s;max-width:380px;margin:0 auto;
+}
+.ci-slot:hover{border-color:var(--accent2)}
+.ci-icon{width:46px;height:46px;border-radius:5px;background:rgba(232,160,32,.15);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.ci-info{flex:1}
+.ci-role{font-size:10px;font-family:var(--fm);color:var(--accent);letter-spacing:1px;text-transform:uppercase}
+.ci-name{font-size:16px;font-weight:700;margin-top:2px;font-family:var(--fd)}
+.ci-rank{font-size:11px;color:var(--text3);margin-top:1px}
+
+/* Section header bars */
+.sec-bar{
+  display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r);margin-bottom:8px;
+  font-family:var(--fd);font-size:14px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+}
+.sec-bar-red{background:var(--red-bg);border:1px solid var(--red-br);color:var(--red-l)}
+.sec-bar-blue{background:var(--blue-bg);border:1px solid var(--blue-br);color:var(--blue-l)}
+.sec-bar-amber{background:var(--amber-bg);border:1px solid var(--amber-br);color:var(--amber-l)}
+.sec-bar-green{background:var(--green-bg);border:1px solid var(--green-br);color:var(--green-l)}
+
+/* Sub-sections inside Operações */
+.ops-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ops-sub{background:var(--bg4);border:1px solid var(--border);border-radius:var(--r);padding:8px}
+.ops-sub-ttl{font-size:9px;font-family:var(--fm);color:var(--red-l);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.slot-sm{
+  background:var(--bg3);border:1px dashed var(--border2);border-radius:4px;
+  padding:7px 9px;display:flex;align-items:center;gap:7px;cursor:pointer;
+  transition:border-color .12s;margin-bottom:5px;
+}
+.slot-sm:last-child{margin-bottom:0}
+.slot-sm:hover{border-color:var(--red-l);background:var(--red-bg)}
+.slot-sm.filled{border-color:rgba(61,214,140,.35);border-style:solid}
+.slot-sm-icon{font-size:12px;width:20px;text-align:center;flex-shrink:0}
+.slot-sm-info{flex:1;min-width:0}
+.slot-sm-role{font-size:8px;font-family:var(--fm);color:var(--text3);letter-spacing:.4px;text-transform:uppercase}
+.slot-sm-name{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.dot-sm{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.dot-sm-on{background:var(--green-l)}
+.dot-sm-off{background:var(--border2)}
+
+/* connector visual */
+.conn-v{width:1px;height:20px;background:var(--border2);margin:0 auto}
+.conn-h{height:1px;background:var(--border2);margin:10px 0}
+
+/* ── RESOURCE CARDS ── */
+.res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.res-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:13px;position:relative;overflow:hidden}
+.res-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.res-card.available::before{background:var(--green-l)}
+.res-card.deployed::before{background:var(--amber-l)}
+.res-card.maintenance::before{background:var(--red-l)}
+.rc-ico{font-size:26px;margin-bottom:7px}
+.rc-id{font-family:var(--fm);font-size:10px;color:var(--text3)}
+.rc-name{font-size:13px;font-weight:600;margin:2px 0}
+.rc-sub{font-size:11px;color:var(--text3);margin-bottom:7px}
+.rc-sel{width:100%;background:var(--bg4);border:1px solid var(--border2);color:var(--text);border-radius:4px;padding:3px 6px;font-size:11px;margin-top:8px;cursor:pointer}
+.rc-sel option{background:var(--bg3)}
+
+/* ── PERSONNEL ── */
+.mil{display:flex;align-items:center;gap:9px;padding:9px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;cursor:pointer;transition:border-color .12s}
+.mil:hover{border-color:var(--border2)}
+.mil-av{width:34px;height:34px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:12px;font-weight:700;flex-shrink:0;background:var(--bg4);color:var(--text2)}
+.mil-av.off{background:rgba(232,160,32,.12);color:var(--accent);border:1px solid rgba(232,160,32,.2)}
+.mil-av.sgt{background:rgba(26,111,212,.12);color:var(--blue-l);border:1px solid rgba(26,111,212,.2)}
+.mil-info{flex:1;min-width:0}
+.mil-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mil-role{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mil-phone{font-size:10px;font-family:var(--fm);color:var(--text3)}
+
+/* ── MISSION CARD ── */
+.mis-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:13px;margin-bottom:9px;cursor:pointer;transition:border-color .12s}
+.mis-card:hover{border-color:var(--border2)}
+.mis-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px}
+.mis-id{font-size:9px;font-family:var(--fm);color:var(--text3)}
+.mis-title{font-size:14px;font-weight:600;margin-top:2px}
+.mis-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mis-team{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+
+/* ── LOG ── */
+.log-e{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(34,48,74,.5);font-size:12px}
+.log-t{font-family:var(--fm);color:var(--text3);white-space:nowrap;flex-shrink:0}
+.log-msg{color:var(--text2)}
+.log-msg strong{color:var(--text)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--r);border:none;font-family:var(--fb);font-size:13px;font-weight:500;cursor:pointer;transition:all .12s}
+.btn-p{background:var(--accent);color:#000}.btn-p:hover{background:var(--accent2)}
+.btn-s{background:var(--bg3);color:var(--text);border:1px solid var(--border2)}.btn-s:hover{background:var(--bg4)}
+.btn-d{background:var(--red-bg);color:var(--red-l);border:1px solid var(--red-br)}.btn-d:hover{background:rgba(212,53,53,.15)}
+.btn-sm{padding:3px 9px;font-size:11px}
+.btn-xs{padding:2px 7px;font-size:10px}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:15px}
+.tab{padding:7px 14px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .12s}
+.tab:hover{color:var(--text2)}
+.tab.active{color:var(--accent2);border-bottom-color:var(--accent)}
+
+/* ── MODALS ── */
+.mbk{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center}
+.mbk.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;width:92%;max-width:540px;max-height:88vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+.modal::-webkit-scrollbar{width:3px}.modal::-webkit-scrollbar-thumb{background:var(--border2)}
+.m-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.m-title{font-family:var(--fd);font-size:18px;font-weight:700;letter-spacing:.5px}
+.m-close{background:none;border:none;color:var(--text3);font-size:19px;cursor:pointer;line-height:1}
+.m-close:hover{color:var(--text)}
+.m-body{padding:18px}
+.m-foot{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:7px;justify-content:flex-end}
+
+/* ── FORM ── */
+.fg{margin-bottom:12px}
+.fl{display:block;font-size:10px;font-family:var(--fm);color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.fi,.fs,.fta{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:var(--r);padding:7px 11px;font-family:var(--fb);font-size:13px;outline:none;transition:border-color .12s}
+.fi:focus,.fs:focus,.fta:focus{border-color:var(--accent)}
+.fs option{background:var(--bg3)}
+.fta{resize:vertical;min-height:70px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ── PICKER ── */
+.picker{max-height:260px;overflow-y:auto}
+.picker::-webkit-scrollbar{width:3px}.picker::-webkit-scrollbar-thumb{background:var(--border2)}
+.pi{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:4px;cursor:pointer;transition:background .1s}
+.pi:hover{background:var(--bg3)}
+.pi.sel{background:rgba(232,160,32,.08);border:1px solid rgba(232,160,32,.25);border-radius:4px}
+.p-search{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:var(--r);padding:6px 11px;font-family:var(--fb);font-size:13px;outline:none;margin-bottom:8px}
+.p-search:focus{border-color:var(--accent)}
+
+/* ── DIVIDER ── */
+.div{height:1px;background:var(--border);margin:14px 0}
+
+/* ── TOAST ── */
+.toasts{position:fixed;bottom:18px;right:18px;z-index:600;display:flex;flex-direction:column;gap:7px}
+.toast{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:9px 14px;font-size:13px;min-width:200px;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:tin .2s ease;display:flex;align-items:center;gap:7px}
+.toast.success{border-left:3px solid var(--green-l)}.toast.error{border-left:3px solid var(--red-l)}.toast.info{border-left:3px solid var(--blue-l)}
+@keyframes tin{from{transform:translateX(16px);opacity:0}to{transform:translateX(0);opacity:1}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-l">
+    <div class="logo">CBM</div>
+    <div>
+      <div class="hdr-title">SCI – 6º BBM</div>
+      <div class="hdr-sub">Sistema de Comando de Incidentes do 6° BBM · CBMMA</div>
+    </div>
+  </div>
+  <div class="hdr-r">
+    <div class="live-badge">SISTEMA ATIVO</div>
+    <div class="clock" id="clk">--:--:--</div>
+    <button class="btn-inc" onclick="openModal('m-inc')">⚡ NOVO INCIDENTE</button>
+  </div>
+</header>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+<!-- SIDEBAR -->
+<nav class="sb">
+  <div class="inc-box">
+    <div class="inc-box-lbl">▸ INCIDENTE ATIVO</div>
+    <div class="inc-box-name" id="sb-inc-name">Nenhum incidente</div>
+    <div class="inc-box-time" id="sb-inc-time">—</div>
+  </div>
+  <div class="sb-sect">
+    <div class="sb-lbl">Operação</div>
+    <div class="nav active" onclick="go('dashboard')"><span class="nav-ico">⊞</span>Painel Geral</div>
+    <div class="nav" onclick="go('sci')"><span class="nav-ico">★</span>Estrutura SCI<span class="nav-badge" id="sci-fill">0</span></div>
+    <div class="nav" onclick="go('missions')"><span class="nav-ico">◎</span>Missões<span class="nav-badge" id="mis-badge">0</span></div>
+  </div>
+  <div class="sb-sect">
+    <div class="sb-lbl">Recursos</div>
+    <div class="nav" onclick="go('vehicles')"><span class="nav-ico">🚒</span>Viaturas</div>
+    <div class="nav" onclick="go('aircraft')"><span class="nav-ico">🚁</span>Aeronaves</div>
+    <div class="nav" onclick="go('vessels')"><span class="nav-ico">⛵</span>Embarcações</div>
+  </div>
+  <div class="sb-sect">
+    <div class="sb-lbl">Gestão</div>
+    <div class="nav" onclick="go('personnel')"><span class="nav-ico">👤</span>Militares</div>
+    <div class="nav" onclick="go('log')"><span class="nav-ico">≡</span>Log Operacional</div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ═══ DASHBOARD ═══ -->
+<div class="view active" id="view-dashboard">
+  <div class="s-hdr">
+    <div class="s-title">Painel Operacional <span class="s-tag">SCI 6° BBM</span></div>
+    <button class="btn btn-s btn-sm" onclick="go('log')">Ver Log</button>
+  </div>
+  <div class="g4" style="margin-bottom:14px">
+    <div class="met"><div class="met-lbl">Incidentes Ativos</div><div class="met-val red" id="m1">0</div><div class="met-sub">registrados</div></div>
+    <div class="met"><div class="met-lbl">Funções SCI Preenchidas</div><div class="met-val amber" id="m2">0</div><div class="met-sub" id="m2s">de 30 postos</div></div>
+    <div class="met"><div class="met-lbl">Recursos em Campo</div><div class="met-val blue" id="m3">0</div><div class="met-sub">viaturas/aeronaves/emb.</div></div>
+    <div class="met"><div class="met-lbl">Missões Ativas</div><div class="met-val green" id="m4">0</div><div class="met-sub">grupos de ação</div></div>
+  </div>
+  <div class="g2" style="margin-bottom:14px">
+    <div class="card ct-red">
+      <div class="card-hdr"><div class="card-ttl">🔴 Incidentes em Andamento</div><button class="btn btn-xs" style="background:var(--red);color:#fff;border:none;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:11px" onclick="openModal('m-inc')">+ Novo</button></div>
+      <div id="dash-inc"><div style="color:var(--text3);font-size:12px;text-align:center;padding:20px">Nenhum incidente</div></div>
+    </div>
+    <div class="card ct-amber">
+      <div class="card-hdr"><div class="card-ttl">◎ Missões Recentes</div><button class="btn btn-s btn-xs" onclick="go('missions')">Ver todas</button></div>
+      <div id="dash-mis"><div style="color:var(--text3);font-size:12px;text-align:center;padding:20px">Nenhuma missão</div></div>
+    </div>
+  </div>
+  <div class="g3">
+    <div class="card ct-red"><div class="card-hdr"><div class="card-ttl">🚒 Viaturas</div></div><div id="dash-v"></div></div>
+    <div class="card" style="border-top:2px solid #a060e8"><div class="card-hdr"><div class="card-ttl">🚁 Aeronaves</div></div><div id="dash-a"></div></div>
+    <div class="card ct-blue"><div class="card-hdr"><div class="card-ttl">⛵ Embarcações</div></div><div id="dash-e"></div></div>
+  </div>
+</div>
+
+<!-- ═══ SCI STRUCTURE ═══ -->
+<div class="view" id="view-sci">
+  <div class="s-hdr">
+    <div class="s-title">Estrutura SCI Expandida <span class="s-tag">SCI 6° BBM</span></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-s btn-sm" onclick="clearAllSCI()">Limpar Tudo</button>
+      <button class="btn btn-p btn-sm" onclick="exportSCI()">↓ Exportar ICS-201</button>
+    </div>
+  </div>
+
+  <!-- Incidente em curso -->
+  <div class="card" style="margin-bottom:12px;padding:10px 14px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="card-ttl">Incidente em Curso</div>
+      <div style="font-size:12px;color:var(--text3)" id="sci-inc-lbl">Nenhum incidente selecionado — crie um incidente primeiro</div>
+    </div>
+  </div>
+
+  <!-- ── COMANDO DO INCIDENTE ── -->
+  <div style="text-align:center;margin-bottom:4px">
+    <div class="ci-slot" onclick="assign('ci','Comandante do Incidente')">
+      <div class="ci-icon">★</div>
+      <div class="ci-info">
+        <div class="ci-role">Comando do Incidente</div>
+        <div class="ci-name" id="fn-ci">— Não designado —</div>
+        <div class="ci-rank" id="fn-ci-r"></div>
+      </div>
+      <div class="dot dot-off" id="d-ci"></div>
+    </div>
+  </div>
+  <div class="conn-v"></div>
+
+  <!-- STAFF DE COMANDO -->
+  <div class="card" style="margin-bottom:4px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="card-ttl" style="color:var(--accent)">★ Staff de Comando</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <div class="slot" onclick="assign('sso','Oficial de Segurança')">
+        <div class="slot-icon">🛡</div>
+        <div class="slot-info"><div class="slot-role">Oficial de Segurança</div><div class="slot-name" id="fn-sso">Não designado</div><div class="slot-rank" id="fn-sso-r"></div></div>
+        <div class="dot dot-off" id="d-sso"></div>
+      </div>
+      <div class="slot" onclick="assign('pio','Oficial de Informações Públicas')">
+        <div class="slot-icon">📢</div>
+        <div class="slot-info"><div class="slot-role">Oficial Inf. Públicas</div><div class="slot-name" id="fn-pio">Não designado</div><div class="slot-rank" id="fn-pio-r"></div></div>
+        <div class="dot dot-off" id="d-pio"></div>
+      </div>
+      <div class="slot" onclick="assign('lno','Oficial de Ligação')">
+        <div class="slot-icon">🤝</div>
+        <div class="slot-info"><div class="slot-role">Oficial de Ligação</div><div class="slot-name" id="fn-lno">Não designado</div><div class="slot-rank" id="fn-lno-r"></div></div>
+        <div class="dot dot-off" id="d-lno"></div>
+      </div>
+    </div>
+  </div>
+  <div class="conn-v"></div>
+
+  <!-- 4 SEÇÕES -->
+  <div class="g2" style="gap:10px">
+
+    <!-- ── OPERAÇÕES ── -->
+    <div class="card ct-red">
+      <div class="sec-bar sec-bar-red">⚔ Seção de Operações</div>
+      <!-- Chefe -->
+      <div class="slot filled-border-check" onclick="assign('ops','Chefe da Seção de Operações')" style="margin-bottom:8px;border-color:var(--red-br)">
+        <div class="slot-icon" style="background:var(--red-bg)">⚔</div>
+        <div class="slot-info"><div class="slot-role">Chefe da Seção</div><div class="slot-name" id="fn-ops">Não designado</div><div class="slot-rank" id="fn-ops-r"></div></div>
+        <div class="dot dot-off" id="d-ops"></div>
+      </div>
+      <!-- ACV + Área de Espera -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+        <div class="slot-sm" onclick="assign('acv','Área de Concentração de Vítimas (ACV)')">
+          <div class="slot-sm-icon">🏥</div>
+          <div class="slot-sm-info"><div class="slot-sm-role">ACV</div><div class="slot-sm-name" id="fn-acv">Não designado</div></div>
+          <div class="dot-sm dot-sm-off" id="d-acv"></div>
+        </div>
+        <div class="slot-sm" onclick="assign('esp','Área de Espera')">
+          <div class="slot-sm-icon">⏳</div>
+          <div class="slot-sm-info"><div class="slot-sm-role">Área de Espera</div><div class="slot-sm-name" id="fn-esp">Não designado</div></div>
+          <div class="dot-sm dot-sm-off" id="d-esp"></div>
+        </div>
+      </div>
+      <!-- Setor -->
+      <div class="slot-sm" onclick="assign('set','Supervisor de Setor')" style="margin-bottom:8px">
+        <div class="slot-sm-icon">📍</div>
+        <div class="slot-sm-info"><div class="slot-sm-role">Setor</div><div class="slot-sm-name" id="fn-set">Não designado</div></div>
+        <div class="dot-sm dot-sm-off" id="d-set"></div>
+      </div>
+      <!-- Grupo | Divisão -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <!-- Grupo -->
+        <div style="background:var(--bg4);border:1px solid var(--border);border-radius:4px;padding:7px">
+          <div style="font-size:9px;font-family:var(--fm);color:var(--red-l);letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid var(--border)">Grupo</div>
+          <div class="slot-sm" onclick="assign('grp','Supervisor de Grupo')">
+            <div class="slot-sm-icon">👥</div><div class="slot-sm-info"><div class="slot-sm-role">Supervisor</div><div class="slot-sm-name" id="fn-grp">N/D</div></div><div class="dot-sm dot-sm-off" id="d-grp"></div>
+          </div>
+          <div class="slot-sm" onclick="assign('ft1','Força Tarefa – Grupo')">
+            <div class="slot-sm-icon">🎯</div><div class="slot-sm-info"><div class="slot-sm-role">Força Tarefa</div><div class="slot-sm-name" id="fn-ft1">N/D</div></div><div class="dot-sm dot-sm-off" id="d-ft1"></div>
+          </div>
+          <div class="slot-sm" onclick="assign('ei1','Equipe de Intervenção – Grupo')">
+            <div class="slot-sm-icon">⚡</div><div class="slot-sm-info"><div class="slot-sm-role">Equipe Intervenção</div><div class="slot-sm-name" id="fn-ei1">N/D</div></div><div class="dot-sm dot-sm-off" id="d-ei1"></div>
+          </div>
+          <div class="slot-sm" onclick="assign('ru1','Recurso Único – Grupo')">
+            <div class="slot-sm-icon">🔧</div><div class="slot-sm-info"><div class="slot-sm-role">Recurso Único</div><div class="slot-sm-name" id="fn-ru1">N/D</div></div><div class="dot-sm dot-sm-off" id="d-ru1"></div>
+          </div>
+        </div>
+        <!-- Divisão -->
+        <div style="background:var(--bg4);border:1px solid var(--border);border-radius:4px;padding:7px">
+          <div style="font-size:9px;font-family:var(--fm);color:var(--red-l);letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid var(--border)">Divisão</div>
+          <div class="slot-sm" onclick="assign('div','Supervisor de Divisão')">
+            <div class="slot-sm-icon">📐</div><div class="slot-sm-info"><div class="slot-sm-role">Supervisor</div><div class="slot-sm-name" id="fn-div">N/D</div></div><div class="dot-sm dot-sm-off" id="d-div"></div>
+          </div>
+          <div class="slot-sm" onclick="assign('ft2','Força Tarefa – Divisão')">
+            <div class="slot-sm-icon">🎯</div><div class="slot-sm-info"><div class="slot-sm-role">Força Tarefa</div><div class="slot-sm-name" id="fn-ft2">N/D</div></div><div class="dot-sm dot-sm-off" id="d-ft2"></div>
+          </div>
+          <div class="slot-sm" onclick="assign('ei2','Equipe de Intervenção – Divisão')">
+            <div class="slot-sm-icon">⚡</div><div class="slot-sm-info"><div class="slot-sm-role">Equipe Intervenção</div><div class="slot-sm-name" id="fn-ei2">N/D</div></div><div class="dot-sm dot-sm-off" id="d-ei2"></div>
+          </div>
+          <div class="slot-sm" onclick="assign('ru2','Recurso Único – Divisão')">
+            <div class="slot-sm-icon">🔧</div><div class="slot-sm-info"><div class="slot-sm-role">Recurso Único</div><div class="slot-sm-name" id="fn-ru2">N/D</div></div><div class="dot-sm dot-sm-off" id="d-ru2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PLANEJAMENTO ── -->
+    <div class="card ct-blue">
+      <div class="sec-bar sec-bar-blue">📋 Seção de Planejamento</div>
+      <div class="slot" onclick="assign('plan','Chefe da Seção de Planejamento')" style="margin-bottom:8px;border-color:var(--blue-br)">
+        <div class="slot-icon" style="background:var(--blue-bg)">📋</div>
+        <div class="slot-info"><div class="slot-role">Chefe da Seção</div><div class="slot-name" id="fn-plan">Não designado</div><div class="slot-rank" id="fn-plan-r"></div></div>
+        <div class="dot dot-off" id="d-plan"></div>
+      </div>
+      <div class="slot-sm" onclick="assign('ur','Unidade de Recursos')"><div class="slot-sm-icon">📦</div><div class="slot-sm-info"><div class="slot-sm-role">Unidade de Recursos</div><div class="slot-sm-name" id="fn-ur">N/D</div></div><div class="dot-sm dot-sm-off" id="d-ur"></div></div>
+      <div class="slot-sm" onclick="assign('us','Unidade de Situação')"><div class="slot-sm-icon">🗺</div><div class="slot-sm-info"><div class="slot-sm-role">Unidade de Situação</div><div class="slot-sm-name" id="fn-us">N/D</div></div><div class="dot-sm dot-sm-off" id="d-us"></div></div>
+      <div class="slot-sm" onclick="assign('ud','Unidade de Documentação')"><div class="slot-sm-icon">📄</div><div class="slot-sm-info"><div class="slot-sm-role">Unidade de Documentação</div><div class="slot-sm-name" id="fn-ud">N/D</div></div><div class="dot-sm dot-sm-off" id="d-ud"></div></div>
+      <div class="slot-sm" onclick="assign('udm','Unidade de Desmobilização')"><div class="slot-sm-icon">🏁</div><div class="slot-sm-info"><div class="slot-sm-role">Unidade de Desmobilização</div><div class="slot-sm-name" id="fn-udm">N/D</div></div><div class="dot-sm dot-sm-off" id="d-udm"></div></div>
+      <div class="slot-sm" onclick="assign('esp2','Especialistas')"><div class="slot-sm-icon">🔬</div><div class="slot-sm-info"><div class="slot-sm-role">Especialistas</div><div class="slot-sm-name" id="fn-esp2">N/D</div></div><div class="dot-sm dot-sm-off" id="d-esp2"></div></div>
+    </div>
+
+    <!-- ── LOGÍSTICA ── -->
+    <div class="card ct-amber">
+      <div class="sec-bar sec-bar-amber">📦 Seção de Logística</div>
+      <div class="slot" onclick="assign('log','Chefe da Seção de Logística')" style="margin-bottom:8px;border-color:var(--amber-br)">
+        <div class="slot-icon" style="background:var(--amber-bg)">📦</div>
+        <div class="slot-info"><div class="slot-role">Chefe da Seção</div><div class="slot-name" id="fn-log">Não designado</div><div class="slot-rank" id="fn-log-r"></div></div>
+        <div class="dot dot-off" id="d-log"></div>
+      </div>
+      <!-- Setor de Serv -->
+      <div style="font-size:9px;font-family:var(--fm);color:var(--amber-l);letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px">Setor de Serviços</div>
+      <div class="slot-sm" onclick="assign('sserv','Supervisor – Setor de Serviços')"><div class="slot-sm-icon">⚙</div><div class="slot-sm-info"><div class="slot-sm-role">Supervisor</div><div class="slot-sm-name" id="fn-sserv">N/D</div></div><div class="dot-sm dot-sm-off" id="d-sserv"></div></div>
+      <div class="slot-sm" onclick="assign('ucom','Unidade de Comunicações')"><div class="slot-sm-icon">📻</div><div class="slot-sm-info"><div class="slot-sm-role">Unid. Comunicações</div><div class="slot-sm-name" id="fn-ucom">N/D</div></div><div class="dot-sm dot-sm-off" id="d-ucom"></div></div>
+      <div class="slot-sm" onclick="assign('umed','Unidade Médica')"><div class="slot-sm-icon">🏥</div><div class="slot-sm-info"><div class="slot-sm-role">Unidade Médica</div><div class="slot-sm-name" id="fn-umed">N/D</div></div><div class="dot-sm dot-sm-off" id="d-umed"></div></div>
+      <div class="slot-sm" onclick="assign('ualim','Unidade de Alimentação')"><div class="slot-sm-icon">🍽</div><div class="slot-sm-info"><div class="slot-sm-role">Unidade de Alimentação</div><div class="slot-sm-name" id="fn-ualim">N/D</div></div><div class="dot-sm dot-sm-off" id="d-ualim"></div></div>
+      <!-- Setor de Apoio -->
+      <div style="font-size:9px;font-family:var(--fm);color:var(--amber-l);letter-spacing:.5px;text-transform:uppercase;margin:8px 0 5px">Setor de Apoio</div>
+      <div class="slot-sm" onclick="assign('sapoio','Supervisor – Setor de Apoio')"><div class="slot-sm-icon">🤝</div><div class="slot-sm-info"><div class="slot-sm-role">Supervisor</div><div class="slot-sm-name" id="fn-sapoio">N/D</div></div><div class="dot-sm dot-sm-off" id="d-sapoio"></div></div>
+      <div class="slot-sm" onclick="assign('usup','Unidade de Suprimento')"><div class="slot-sm-icon">🔩</div><div class="slot-sm-info"><div class="slot-sm-role">Unid. Suprimento</div><div class="slot-sm-name" id="fn-usup">N/D</div></div><div class="dot-sm dot-sm-off" id="d-usup"></div></div>
+      <div class="slot-sm" onclick="assign('uinst','Unidade de Instalações')"><div class="slot-sm-icon">🏗</div><div class="slot-sm-info"><div class="slot-sm-role">Unid. Instalações</div><div class="slot-sm-name" id="fn-uinst">N/D</div></div><div class="dot-sm dot-sm-off" id="d-uinst"></div></div>
+      <div class="slot-sm" onclick="assign('uat','Unidade de Apoio Terrestre')"><div class="slot-sm-icon">🚛</div><div class="slot-sm-info"><div class="slot-sm-role">Apoio Terrestre</div><div class="slot-sm-name" id="fn-uat">N/D</div></div><div class="dot-sm dot-sm-off" id="d-uat"></div></div>
+    </div>
+
+    <!-- ── ADM/FINANÇAS ── -->
+    <div class="card ct-green">
+      <div class="sec-bar sec-bar-green">💰 Seção Adm/Finanças</div>
+      <div class="slot" onclick="assign('fin','Chefe da Seção Adm/Finanças')" style="margin-bottom:8px;border-color:var(--green-br)">
+        <div class="slot-icon" style="background:var(--green-bg)">💰</div>
+        <div class="slot-info"><div class="slot-role">Chefe da Seção</div><div class="slot-name" id="fn-fin">Não designado</div><div class="slot-rank" id="fn-fin-r"></div></div>
+        <div class="dot dot-off" id="d-fin"></div>
+      </div>
+      <div class="slot-sm" onclick="assign('ut','Unidade de Tempo')"><div class="slot-sm-icon">⏱</div><div class="slot-sm-info"><div class="slot-sm-role">Unidade de Tempo</div><div class="slot-sm-name" id="fn-ut">N/D</div></div><div class="dot-sm dot-sm-off" id="d-ut"></div></div>
+      <div class="slot-sm" onclick="assign('uprov','Unidade de Provedoria')"><div class="slot-sm-icon">📝</div><div class="slot-sm-info"><div class="slot-sm-role">Unidade de Provedoria</div><div class="slot-sm-name" id="fn-uprov">N/D</div></div><div class="dot-sm dot-sm-off" id="d-uprov"></div></div>
+      <div class="slot-sm" onclick="assign('ucust','Unidade de Custos')"><div class="slot-sm-icon">📊</div><div class="slot-sm-info"><div class="slot-sm-role">Unidade de Custos</div><div class="slot-sm-name" id="fn-ucust">N/D</div></div><div class="dot-sm dot-sm-off" id="d-ucust"></div></div>
+    </div>
+
+  </div><!-- /g2 -->
+</div>
+
+<!-- ═══ MISSIONS ═══ -->
+<div class="view" id="view-missions">
+  <div class="s-hdr">
+    <div class="s-title">Grupo de Missões <span class="s-tag">OPERAÇÕES</span></div>
+    <button class="btn btn-p btn-sm" onclick="openMissionModal()">+ Nova Missão</button>
+  </div>
+  <div id="mis-view"><div style="color:var(--text3);font-size:13px;text-align:center;padding:40px">Nenhuma missão criada</div></div>
+</div>
+
+<!-- ═══ VEHICLES ═══ -->
+<div class="view" id="view-vehicles">
+  <div class="s-hdr"><div class="s-title">Viaturas <span class="s-tag">RECURSOS</span></div><button class="btn btn-p btn-sm" onclick="openResModal('vehicle')">+ Adicionar</button></div>
+  <div class="res-grid" id="v-cards"></div>
+</div>
+
+<!-- ═══ AIRCRAFT ═══ -->
+<div class="view" id="view-aircraft">
+  <div class="s-hdr"><div class="s-title">Aeronaves <span class="s-tag">RECURSOS</span></div><button class="btn btn-p btn-sm" onclick="openResModal('aircraft')">+ Adicionar</button></div>
+  <div class="res-grid" id="a-cards"></div>
+</div>
+
+<!-- ═══ VESSELS ═══ -->
+<div class="view" id="view-vessels">
+  <div class="s-hdr"><div class="s-title">Embarcações <span class="s-tag">RECURSOS</span></div><button class="btn btn-p btn-sm" onclick="openResModal('vessel')">+ Adicionar</button></div>
+  <div class="res-grid" id="e-cards"></div>
+</div>
+
+<!-- ═══ PERSONNEL ═══ -->
+<div class="view" id="view-personnel">
+  <div class="s-hdr">
+    <div class="s-title">Efetivo Militar <span class="s-tag">6º BBM</span></div>
+    <button class="btn btn-p btn-sm" onclick="openModal('m-addper')">+ Adicionar Militar</button>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="pfilt('all',this)">Todos <span id="p-cnt" style="color:var(--text3)"></span></div>
+    <div class="tab" onclick="pfilt('PRONTO',this)">Pronto <span id="p-cnt-p" style="color:var(--text3)"></span></div>
+    <div class="tab" onclick="pfilt('EMPREGADO',this)">Empregado</div>
+    <div class="tab" onclick="pfilt('AFASTADO',this)">Afastado</div>
+    <div class="tab" onclick="pfilt('FERIAS',this)">Férias/Licença</div>
+  </div>
+  <input class="p-search" id="p-search" placeholder="Buscar por nome, patente ou função..." oninput="renderPers()">
+  <div id="per-list"></div>
+</div>
+
+<!-- ═══ LOG ═══ -->
+<div class="view" id="view-log">
+  <div class="s-hdr">
+    <div class="s-title">Log Operacional <span class="s-tag">REGISTRO</span></div>
+    <button class="btn btn-s btn-sm" onclick="DB.log=[];renderLog()">Limpar</button>
+  </div>
+  <div class="card"><div id="log-ent"><div style="color:var(--text3);font-size:12px;text-align:center;padding:20px">Nenhum registro</div></div></div>
+</div>
+
+</main>
+</div><!-- /layout -->
+
+<!-- ══════════ MODALS ══════════ -->
+
+<!-- NOVO INCIDENTE -->
+<div class="mbk" id="m-inc">
+  <div class="modal">
+    <div class="m-hdr"><div class="m-title">⚡ Novo Incidente</div><button class="m-close" onclick="closeModal('m-inc')">✕</button></div>
+    <div class="m-body">
+      <div class="fg"><label class="fl">Tipo de Incidente</label>
+        <select class="fs" id="i-type">
+          <option>Incêndio Estrutural</option><option>Incêndio Florestal/Vegetação</option>
+          <option>Resgate Veicular</option><option>Resgate em Altura</option>
+          <option>Resgate Aquático</option><option>Busca e Resgate</option>
+          <option>HAZMAT – Produtos Perigosos</option><option>Múltiplas Vítimas (MCI)</option>
+          <option>Desastre Natural / Inundação</option><option>Colapso de Estrutura</option>
+          <option>Apoio Pré-Hospitalar</option><option>Outro</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Descrição / Endereço</label><input class="fi" id="i-desc" placeholder="Ex: Incêndio em edifício residencial – Av. Brasil, 500"></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Município</label><input class="fi" id="i-city" placeholder="São Luís"></div>
+        <div class="fg"><label class="fl">Prioridade</label>
+          <select class="fs" id="i-pri"><option value="ALTA">ALTA</option><option value="MÉDIA" selected>MÉDIA</option><option value="BAIXA">BAIXA</option></select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Observações Iniciais</label><textarea class="fta" id="i-notes" placeholder="Informações adicionais, número de vítimas, condições..."></textarea></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-s" onclick="closeModal('m-inc')">Cancelar</button>
+      <button class="btn btn-p" onclick="createIncident()">Registrar Incidente</button>
+    </div>
+  </div>
+</div>
+
+<!-- DESIGNAR FUNÇÃO -->
+<div class="mbk" id="m-assign">
+  <div class="modal">
+    <div class="m-hdr"><div class="m-title" id="a-title">Designar Função</div><button class="m-close" onclick="closeModal('m-assign')">✕</button></div>
+    <div class="m-body">
+      <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 14px;margin-bottom:12px">
+        <div style="font-size:10px;font-family:var(--fm);color:var(--text3);letter-spacing:.5px;margin-bottom:2px">FUNÇÃO</div>
+        <div style="font-size:14px;font-weight:600;color:var(--accent2)" id="a-role-lbl"></div>
+      </div>
+      <div class="fg">
+        <label class="fl">Selecionar Militar</label>
+        <input class="p-search" id="a-search" placeholder="Buscar por nome ou patente..." oninput="renderAPicker()" style="margin-bottom:8px">
+        <div class="picker" id="a-picker"></div>
+      </div>
+      <!-- Outro: campo livre -->
+      <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;cursor:pointer" onclick="togOutro()">
+          <div id="outro-chk" style="width:16px;height:16px;border:1px solid var(--border2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;background:var(--bg3)"></div>
+          <span style="font-size:12px;color:var(--text2)">Outro — inserir militar não listado</span>
+        </div>
+        <div id="outro-box" style="display:none;flex-direction:column;gap:6px">
+          <div class="fr">
+            <div class="fg" style="margin-bottom:0"><label class="fl">Posto / Graduação</label><input class="fi" id="outro-rank" placeholder="Ex: CAP, 2º SGT, CB..."></div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">Nome de Guerra / Completo</label><input class="fi" id="outro-name" placeholder="Ex: SILVA ou João da Silva"></div>
+          </div>
+          <div class="fg" style="margin-bottom:0"><label class="fl">Função / Observação (opcional)</label><input class="fi" id="outro-obs" placeholder="Ex: Reforço externo, Voluntário, Apoio SAMU..."></div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px">
+        <button class="btn btn-d btn-sm" onclick="clearSlot()">✕ Remover Designação</button>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-s" onclick="closeModal('m-assign')">Cancelar</button>
+      <button class="btn btn-p" onclick="confirmAssign()">Confirmar Designação</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOVA MISSÃO -->
+<div class="mbk" id="m-mis">
+  <div class="modal">
+    <div class="m-hdr"><div class="m-title">◎ Nova Missão</div><button class="m-close" onclick="closeModal('m-mis')">✕</button></div>
+    <div class="m-body">
+      <div class="fg"><label class="fl">Tipo de Missão</label>
+        <select class="fs" id="ms-type">
+          <option>Ataque Direto</option><option>Ataque Indireto</option>
+          <option>Resgate de Vítimas</option><option>Busca Terrestre</option>
+          <option>Busca Aquática</option><option>Busca Aérea</option>
+          <option>Triagem / APH</option><option>Evacuação de Área</option>
+          <option>Reconhecimento</option><option>Apoio Logístico</option>
+          <option>Contenção HAZMAT</option><option>Controle de Área</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Descrição / Objetivo</label><input class="fi" id="ms-desc" placeholder="Descreva o objetivo da missão"></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Setor / Área de Atuação</label><input class="fi" id="ms-sec" placeholder="Ex: Setor Norte, Quadrante B"></div>
+        <div class="fg"><label class="fl">Prioridade</label>
+          <select class="fs" id="ms-pri"><option value="ALTA">ALTA</option><option value="MÉDIA" selected>MÉDIA</option><option value="BAIXA">BAIXA</option></select>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">Equipe Designada (selecione múltiplos)</label>
+        <input class="p-search" id="ms-psearch" placeholder="Buscar militar..." oninput="renderMPicker()" style="margin-bottom:8px">
+        <div class="picker" id="ms-picker"></div>
+      </div>
+      <div class="fg">
+        <label class="fl">Viaturas / Aeronaves / Embarcações Empregadas</label>
+        <div id="ms-res-list" style="display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto"></div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-s" onclick="closeModal('m-mis')">Cancelar</button>
+      <button class="btn btn-p" onclick="createMission()">Criar Missão</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECURSO -->
+<div class="mbk" id="m-res">
+  <div class="modal">
+    <div class="m-hdr"><div class="m-title" id="res-title">Adicionar Recurso</div><button class="m-close" onclick="closeModal('m-res')">✕</button></div>
+    <div class="m-body">
+      <div class="fr">
+        <div class="fg"><label class="fl">Identificação / Prefixo</label><input class="fi" id="r-id" placeholder="Ex: ABT-01"></div>
+        <div class="fg"><label class="fl">Nome / Modelo</label><input class="fi" id="r-name" placeholder="Ex: Auto Bomba Tanque"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Subtipo / Missão</label><input class="fi" id="r-sub" placeholder="Ex: Combate a Incêndio"></div>
+        <div class="fg"><label class="fl">Status</label>
+          <select class="fs" id="r-stat"><option value="available">Disponível</option><option value="deployed">Em Operação</option><option value="maintenance">Manutenção</option></select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Guarnição / Tripulação</label><input class="fi" id="r-crew" placeholder="Ex: 1 Motorista + 3 BM"></div>
+      <div class="fg"><label class="fl">Observações / Capacidade</label><textarea class="fta" id="r-obs" placeholder="Equipamentos, capacidade, rádio, etc."></textarea></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-s" onclick="closeModal('m-res')">Cancelar</button>
+      <button class="btn btn-p" onclick="saveRes()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PERSONNEL -->
+<div class="mbk" id="m-addper">
+  <div class="modal">
+    <div class="m-hdr"><div class="m-title">👤 Adicionar Militar</div><button class="m-close" onclick="closeModal('m-addper')">✕</button></div>
+    <div class="m-body">
+      <div class="fr">
+        <div class="fg"><label class="fl">Posto / Graduação</label>
+          <select class="fs" id="ap-rank">
+            <option>MAJ</option><option>CAP</option><option>1º TEN</option><option>2º TEN</option>
+            <option>ASP OF BM</option><option>1º SGT</option><option>2º SGT</option><option>3º SGT</option><option>CB</option><option>SD</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Quadro</label>
+          <select class="fs" id="ap-quad"><option>QOC</option><option>QOA</option><option>QPEBM</option><option>QPBM-0</option><option>QPBM</option></select>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Nome de Guerra</label><input class="fi" id="ap-wn" placeholder="SILVA"></div>
+        <div class="fg"><label class="fl">Nome Completo</label><input class="fi" id="ap-fn" placeholder="João da Silva Santos"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Telefone</label><input class="fi" id="ap-ph" placeholder="(98) 9XXXX-XXXX"></div>
+        <div class="fg"><label class="fl">Status</label>
+          <select class="fs" id="ap-stat">
+            <option value="PRONTO">PRONTO</option><option value="EMPREGADO">EMPREGADO</option>
+            <option value="AFASTADO">AFASTADO</option><option value="FERIAS">EM GOZO DE FÉRIAS</option>
+            <option value="LICENCA">EM GOZO DE LICENÇA</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Função no Batalhão</label><input class="fi" id="ap-role" placeholder="Ex: Cmt 1ª CBM do 6º BBM"></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-s" onclick="closeModal('m-addper')">Cancelar</button>
+      <button class="btn btn-p" onclick="addPer()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<!-- ══════════ FIREBASE SDK ══════════ -->
+<!-- Firebase App (obrigatório) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<!-- Firebase Realtime Database -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<!-- Suas chaves Firebase -->
+<script src="firebase.js"></script>
+<!-- Camada de serviço Firebase -->
+<script src="firebaseService.js"></script>
+
+<!-- ══════════ SCRIPT ══════════ -->
+<script>
+// ─── DATA ───
+const DB = { incidents:[], missions:[], assign:{}, vehicles:[], aircraft:[], vessels:[], personnel:[], log:[] };
+
+// ─── PERSONNEL (21 militares 6º BBM) ───
+const PERSONNEL0 = [
+  {id:1,rank:'MAJ',quad:'QOC',wn:'DAVID HARRISON',fn:'David Harrison Silva Abreu',ph:'(98) 98823-3570',role:'Comandante do Batalhão (6º BBM)',st:'PRONTO'},
+  {id:2,rank:'CAP',quad:'QOC',wn:'JORGE LUIS',fn:'Jorge Luis Cruz Muniz Filho',ph:'(98) 98278-7865',role:'Subcomandante do Batalhão (6º BBM)',st:'PRONTO'},
+  {id:3,rank:'CAP',quad:'QOC',wn:'HALYM',fn:'Halym Philipe Mandu Maia',ph:'(98) 98487-1846',role:'Chefe Depto. Operações e Atividades Técnicas (6º BBM)',st:'PRONTO'},
+  {id:4,rank:'CAP',quad:'QOC',wn:'BRANDAO',fn:'Diego Fernandes Brandão',ph:'(98) 98310-3391',role:'Chefe da Seção de Administração (6º BBM)',st:'PRONTO'},
+  {id:5,rank:'CAP',quad:'QOC',wn:'RIBAMAR',fn:'José de Ribamar Nascimento Silva Filho',ph:'(98) 98416-3262',role:'Chefe Seção de Finanças / Cmt CMCB XXIII',st:'PRONTO'},
+  {id:6,rank:'1º TEN',quad:'QOA',wn:'CASSIO MURILO',fn:'Cassio Murilo Lopes Coelho',ph:'(99) 98204-3488',role:'Cmt 1ª CBM / Sub Cmt CMCB XXIII',st:'AFASTADO'},
+  {id:7,rank:'1º TEN',quad:'QOC',wn:'STHEPHANE',fn:'Sthephane Silva Corrêa',ph:'(98) 98805-0904',role:'Chefe Seção de Patrimônio (6º BBM)',st:'PRONTO'},
+  {id:8,rank:'ASP OF BM',quad:'QPEBM',wn:'DANIEL PEDRO',fn:'Daniel Pedro de Oliveira Pereira',ph:'(98) 98897-9470',role:'Subchefe Seção de Patrimônio (6º BBM)',st:'PRONTO'},
+  {id:9,rank:'1º SGT',quad:'QPBM-0',wn:'LISBOA',fn:'Luis Carlos Lisboa Silva',ph:'(99) 98199-9520',role:'Auxiliar Seção de Finanças / Aux Cmt de Alunos CMCB XXIII',st:'PRONTO'},
+  {id:10,rank:'1º SGT',quad:'QPBM-0',wn:'VALBER',fn:'Valber Marques Costa',ph:'(98) 98155-7377',role:'Praças Auxiliares 2ª CBM (6º BBM)',st:'PRONTO'},
+  {id:11,rank:'1º SGT',quad:'QPBM-0',wn:'RUANY',fn:'Ruany Marcos Pereira Moreira',ph:'(99) 99148-0415',role:'Praças Auxiliares Seção de Administração (6º BBM)',st:'FERIAS'},
+  {id:12,rank:'2º SGT',quad:'QPBM-0',wn:'VINICIUS MAGALHÃES',fn:'Marcus Vinícius Magalhães Guedes',ph:'(98) 98225-1588',role:'Praças Auxiliares 3ª CBM (6º BBM)',st:'PRONTO'},
+  {id:13,rank:'2º SGT',quad:'QPBM-0',wn:'ÁLISSON',fn:'Álisson da Cunha Sousa',ph:'(99) 98193-6962',role:'Praças Auxiliares Seção de Administração (6º BBM)',st:'PRONTO'},
+  {id:14,rank:'3º SGT',quad:'QPBM-0',wn:'TORRES',fn:'Ayslan Gonçalves Torres',ph:'(98) 98892-1989',role:'Praças Auxiliares 3ª CBM (6º BBM)',st:'PRONTO'},
+  {id:15,rank:'2º SGT',quad:'QPBM-0',wn:'SANTIAGO',fn:'Francisco Junyor Santiago Lima',ph:'(99) 98861-0740',role:'Praças Auxiliares Seção de Administração (6º BBM)',st:'PRONTO'},
+  {id:16,rank:'2º SGT',quad:'QPBM-0',wn:'CRUZ',fn:'Leandro Angelo Cruz dos Santos',ph:'(99) 98158-3969',role:'Praças Auxiliares 1ª CBM (6º BBM)',st:'PRONTO'},
+  {id:17,rank:'2º SGT',quad:'QPBM-0',wn:'PEREIRA',fn:'Erlen Pereira da Silva',ph:'(99) 98131-6486',role:'Praças Auxiliares 3ª CBM (6º BBM)',st:'LICENCA'},
+  {id:18,rank:'2º SGT',quad:'QPBM-0',wn:'REIS',fn:'Fábio dos Reis Nina',ph:'(99) 98417-7138',role:'Praças Auxiliares 1ª CBM (6º BBM)',st:'PRONTO'},
+  {id:19,rank:'3º SGT',quad:'QPBM-0',wn:'BRITO',fn:'Pedro Rogério Brito dos Santos',ph:'(99) 99196-3969',role:'Militares Adidos – Postos Interior MA',st:'PRONTO'},
+  {id:20,rank:'3º SGT',quad:'QPBM-0',wn:'GUSTAVO LUIS',fn:'Gustavo Lima Mendes',ph:'(99) 98459-3254',role:'Praças Auxiliares 2ª CBM (6º BBM)',st:'PRONTO'},
+  {id:21,rank:'3º SGT',quad:'QPBM-0',wn:'LUCAS',fn:'Lucas Ribeiro dos Santos',ph:'(99) 99196-3969',role:'Militares Adidos – Postos Interior MA',st:'PRONTO'},
+];
+
+const VEHICLES0 = [
+  {id:'ABT-14',name:'Auto Bomba Tanque 14',sub:'Combate a Incêndio',st:'available',crew:'1 CB + 3 BM',obs:'Capacidade 5.000 litros · Mangueiras 38/63mm',type:'vehicle'},
+  {id:'AR-78',name:'Auto Resgate Rápido 78',sub:'Resgate Rápido / Busca e Resgate',st:'available',crew:'1 CB + 2 BM',obs:'Caminhonete · Equipamentos de salvamento · Primeiro atendimento',type:'vehicle'},
+];
+const AIRCRAFT0 = [];
+const VESSELS0 = [
+  {id:'ESC-01',name:'Escaler',sub:'Resgate Aquático',st:'available',crew:'1 Piloto + 2 BM',obs:'Motor 30HP · Operações fluviais',type:'vessel'},
+];
+
+// ─── SCI SLOTS MAP ───
+// key: [elementId, label, section-color]
+const SLOTS = {
+  ci:   ['fn-ci','Comandante do Incidente','amber'],
+  sso:  ['fn-sso','Oficial de Segurança','amber'],
+  pio:  ['fn-pio','Oficial de Informações Públicas','amber'],
+  lno:  ['fn-lno','Oficial de Ligação','amber'],
+  ops:  ['fn-ops','Chefe da Seção de Operações','red'],
+  acv:  ['fn-acv','Área de Concentração de Vítimas (ACV)','red'],
+  esp:  ['fn-esp','Supervisor – Área de Espera','red'],
+  set:  ['fn-set','Supervisor de Setor','red'],
+  grp:  ['fn-grp','Supervisor de Grupo','red'],
+  ft1:  ['fn-ft1','Força Tarefa – Grupo','red'],
+  ei1:  ['fn-ei1','Equipe de Intervenção – Grupo','red'],
+  ru1:  ['fn-ru1','Recurso Único – Grupo','red'],
+  div:  ['fn-div','Supervisor de Divisão','red'],
+  ft2:  ['fn-ft2','Força Tarefa – Divisão','red'],
+  ei2:  ['fn-ei2','Equipe de Intervenção – Divisão','red'],
+  ru2:  ['fn-ru2','Recurso Único – Divisão','red'],
+  plan: ['fn-plan','Chefe da Seção de Planejamento','blue'],
+  ur:   ['fn-ur','Unidade de Recursos','blue'],
+  us:   ['fn-us','Unidade de Situação','blue'],
+  ud:   ['fn-ud','Unidade de Documentação','blue'],
+  udm:  ['fn-udm','Unidade de Desmobilização','blue'],
+  esp2: ['fn-esp2','Especialistas','blue'],
+  log:  ['fn-log','Chefe da Seção de Logística','amber'],
+  sserv:['fn-sserv','Supervisor – Setor de Serviços','amber'],
+  ucom: ['fn-ucom','Unidade de Comunicações','amber'],
+  umed: ['fn-umed','Unidade Médica','amber'],
+  ualim:['fn-ualim','Unidade de Alimentação','amber'],
+  sapoio:['fn-sapoio','Supervisor – Setor de Apoio','amber'],
+  usup: ['fn-usup','Unidade de Suprimento','amber'],
+  uinst:['fn-uinst','Unidade de Instalações','amber'],
+  uat:  ['fn-uat','Unidade de Apoio Terrestre','amber'],
+  fin:  ['fn-fin','Chefe da Seção Adm/Finanças','green'],
+  ut:   ['fn-ut','Unidade de Tempo','green'],
+  uprov:['fn-uprov','Unidade de Provedoria','green'],
+  ucust:['fn-ucust','Unidade de Custos','green'],
+};
+
+// ─── INIT ───
+function init(){
+  DB.personnel=[...PERSONNEL0];
+  DB.vehicles=[...VEHICLES0];
+  DB.aircraft=[...AIRCRAFT0];
+  DB.vessels=[...VESSELS0];
+  renderPers(); renderVehicles(); renderAircraft(); renderVessels();
+  renderDashRes(); metrics();
+  clock();
+  addLog('Sistema SCI iniciado – 6º BBM · CBMMA','info');
+}
+
+// ─── CLOCK ───
+function clock(){
+  const tick=()=>{const n=new Date();document.getElementById('clk').textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>String(v).padStart(2,'0')).join(':')};
+  tick();setInterval(tick,1000);
+}
+
+// ─── NAV ───
+function go(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  document.querySelectorAll('.nav').forEach(n=>{
+    n.classList.remove('active');
+    const oc=n.getAttribute('onclick')||'';
+    if(oc.includes("'"+id+"'"))n.classList.add('active');
+  });
+}
+
+// ─── MODALS ───
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+
+// ─── INCIDENTS ───
+function createIncident(){
+  const t=v('i-type'),d=v('i-desc')||t,c=v('i-city')||'São Luís',p=v('i-pri'),n=v('i-notes');
+  const now=new Date();
+  const inc={id:'INC-'+String(DB.incidents.length+1).padStart(3,'0'),type:t,desc:d,city:c,pri:p,notes:n,time:now,ts:fmt(now),st:'ATIVO'};
+  DB.incidents.push(inc);
+  fbSaveIncident(inc);  // ← Firebase
+  document.getElementById('sb-inc-name').textContent=inc.id+' – '+inc.desc;
+  document.getElementById('sb-inc-time').textContent=inc.ts+' · '+inc.city;
+  document.getElementById('sci-inc-lbl').textContent=inc.id+' – '+inc.desc+' · '+inc.city+' · Prioridade: '+inc.pri;
+  addLog(`Incidente registrado: <strong>${inc.id} – ${inc.desc}</strong> · ${inc.city} · Prioridade: ${inc.pri}`,'danger');
+  renderIncList(); metrics();
+  closeModal('m-inc'); toast('Incidente '+inc.id+' registrado!','success');
+  ['i-desc','i-city','i-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+}
+
+function renderIncList(){
+  const el=document.getElementById('dash-inc');
+  if(!DB.incidents.length){el.innerHTML='<div style="color:var(--text3);font-size:12px;text-align:center;padding:20px">Nenhum incidente</div>';return;}
+  el.innerHTML=DB.incidents.map(i=>`
+    <div class="mis-card" style="margin-bottom:8px">
+      <div class="mis-top">
+        <div><div class="mis-id">${i.id} · ${i.ts} · ${i.city}</div><div class="mis-title">${i.desc}</div></div>
+        <span class="pill ${i.pri==='ALTA'?'p-red':i.pri==='MÉDIA'?'p-amber':'p-green'}">${i.pri}</span>
+      </div>
+      <div class="mis-meta">
+        <span class="pill p-blue">${i.type}</span>
+        <span class="pill ${i.st==='ATIVO'?'p-red':'p-gray'}">${i.st}</span>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:6px">
+        ${i.st==='ATIVO'?`<button class="btn btn-s btn-xs" onclick="encerrarInc('${i.id}')">✓ Encerrar</button>`:''}
+      </div>
+    </div>`).join('');
+}
+function encerrarInc(id){const i=DB.incidents.find(x=>x.id===id);if(i){i.st='ENCERRADO';fbUpdateIncident(id,{st:'ENCERRADO'});renderIncList();metrics();addLog(`Incidente <strong>${id}</strong> encerrado`,'info');}}
+
+// ─── SCI ASSIGN ───
+let _aKey=null,_aRole=null,_aSel=null,_aOutro=false;
+
+function assign(key,role){
+  _aKey=key;_aRole=role;_aSel=DB.assign[key]||null;_aOutro=false;
+  document.getElementById('a-title').textContent='Designar: '+role;
+  document.getElementById('a-role-lbl').textContent=role;
+  document.getElementById('a-search').value='';
+  // reset outro
+  document.getElementById('outro-chk').textContent='';
+  document.getElementById('outro-chk').style.background='var(--bg3)';
+  document.getElementById('outro-box').style.display='none';
+  document.getElementById('outro-rank').value='';
+  document.getElementById('outro-name').value='';
+  document.getElementById('outro-obs').value='';
+  // if current assignment is an "outro" person (id starts with 'outro-')
+  if(_aSel && String(_aSel.id).startsWith('outro-')){
+    _aOutro=true;
+    document.getElementById('outro-chk').textContent='✓';
+    document.getElementById('outro-chk').style.background='var(--accent)';
+    document.getElementById('outro-box').style.display='flex';
+    document.getElementById('outro-rank').value=_aSel.rank||'';
+    document.getElementById('outro-name').value=_aSel.wn||'';
+    document.getElementById('outro-obs').value=_aSel.role||'';
+    _aSel=null;
+  }
+  renderAPicker(); openModal('m-assign');
+}
+
+function togOutro(){
+  _aOutro=!_aOutro;
+  const chk=document.getElementById('outro-chk');
+  const box=document.getElementById('outro-box');
+  chk.textContent=_aOutro?'✓':'';
+  chk.style.background=_aOutro?'var(--accent)':'var(--bg3)';
+  box.style.display=_aOutro?'flex':'none';
+  if(_aOutro) _aSel=null; // deselect list when outro is active
+  renderAPicker();
+}
+
+function renderAPicker(){
+  const q=(document.getElementById('a-search').value||'').toLowerCase();
+  const c=document.getElementById('a-picker');
+  const list=DB.personnel.filter(p=>!q||p.wn.toLowerCase().includes(q)||p.fn.toLowerCase().includes(q)||p.rank.toLowerCase().includes(q));
+  c.innerHTML=list.map(p=>`
+    <div class="pi ${!_aOutro&&_aSel&&_aSel.id===p.id?'sel':''}" onclick="selAP(${p.id})" style="${_aOutro?'opacity:.4;pointer-events:none':''}">
+      <div class="mil-av ${isOff(p.rank)?'off':'sgt'}" style="width:28px;height:28px;font-size:10px">${ini(p.wn)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600">${p.rank} ${p.quad} ${p.wn}</div>
+        <div style="font-size:11px;color:var(--text3)">${p.fn}</div>
+      </div>
+      <span class="pill ${spill(p.st)}">${p.st}</span>
+    </div>`).join('')||'<div style="color:var(--text3);font-size:12px;padding:8px">Nenhum resultado</div>';
+}
+
+function selAP(id){
+  if(_aOutro) return;
+  _aSel=DB.personnel.find(p=>p.id===id);
+  renderAPicker();
+}
+
+function confirmAssign(){
+  if(!_aKey)return;
+  if(_aOutro){
+    const rank=(document.getElementById('outro-rank').value||'').trim();
+    const name=(document.getElementById('outro-name').value||'').trim();
+    if(!name){toast('Informe o nome do militar','error');return;}
+    const pessoa={id:'outro-'+Date.now(),rank:rank||'—',quad:'',wn:name.toUpperCase(),fn:name,ph:'—',role:document.getElementById('outro-obs').value||'Designação manual',st:'PRONTO'};
+    DB.assign[_aKey]=pessoa;
+    fbSaveAssign(_aKey, pessoa); // ← Firebase
+  } else {
+    if(!_aSel){toast('Selecione um militar ou use a opção "Outro"','error');return;}
+    DB.assign[_aKey]=_aSel;
+    fbSaveAssign(_aKey, _aSel); // ← Firebase
+  }
+  refreshSlot(_aKey);
+  const p=DB.assign[_aKey];
+  metrics(); addLog(`<strong>${p.rank} ${p.wn}</strong> designado como <strong>${_aRole}</strong>`,'info');
+  toast(p.wn+' designado como '+_aRole,'success');
+  closeModal('m-assign');
+}
+
+function clearSlot(){
+  if(!_aKey)return;
+  delete DB.assign[_aKey];
+  fbClearAssign(_aKey); // ← Firebase
+  refreshSlot(_aKey);
+  metrics(); closeModal('m-assign');
+}
+
+function clearAllSCI(){
+  Object.keys(DB.assign).forEach(k=>{delete DB.assign[k]; refreshSlot(k);});
+  if(typeof fbRemove==='function') fbRemove('assign'); // ← Firebase
+  metrics(); toast('Estrutura SCI limpa','info');
+}
+
+function refreshSlot(key){
+  const info=SLOTS[key]; if(!info)return;
+  const p=DB.assign[key];
+  // name element
+  const ne=document.getElementById(info[0]);
+  if(ne) ne.textContent=p?(key==='ci'?p.rank+' '+p.wn:p.wn):'Não designado';
+  // rank element (only big slots)
+  const re=document.getElementById(info[0]+'-r');
+  if(re) re.textContent=p?p.rank+' '+p.quad:'';
+  // dot
+  const de=document.getElementById('d-'+key);
+  if(de){ de.classList.remove('dot-on','dot-off','dot-sm-on','dot-sm-off'); de.classList.add(p?(de.classList.contains('dot')||de.classList.contains('dot-on')||de.classList.contains('dot-off')?'dot-on':'dot-sm-on'):'dot-off'); }
+  // Update CI rank separately
+  if(key==='ci'){
+    const cr=document.getElementById('fn-ci-r');
+    if(cr) cr.textContent=p?p.fn:'';
+  }
+}
+
+// Fix dot classes on refresh
+function refreshSlot(key){
+  const info=SLOTS[key]; if(!info)return;
+  const p=DB.assign[key];
+  const ne=document.getElementById(info[0]);
+  const re=document.getElementById(info[0]+'-r');
+  const de=document.getElementById('d-'+key);
+  if(ne) ne.textContent=p?(key==='ci'?p.rank+' '+p.wn:p.wn):(key.length<=3?'Não designado':'N/D');
+  if(re) re.textContent=p?p.rank+' '+p.quad:'';
+  if(key==='ci'){const cr=document.getElementById('fn-ci-r');if(cr)cr.textContent=p?p.fn:'';}
+  if(de){
+    const sm=de.className.includes('dot-sm')||de.className.includes('dot_sm');
+    de.className='';
+    if(sm){de.className='dot-sm '+(p?'dot-sm-on':'dot-sm-off');}
+    else{de.className='dot '+(p?'dot-on':'dot-off');}
+  }
+}
+
+// ─── MISSIONS ───
+let _mPers=[],_mRes=[];
+
+function openMissionModal(){
+  _mPers=[];_mRes=[];
+  renderMPicker();
+  renderMReslist();
+  openModal('m-mis');
+}
+
+function renderMReslist(){
+  const c=document.getElementById('ms-res-list');
+  const all=[...DB.vehicles,...DB.aircraft,...DB.vessels];
+  if(!all.length){c.innerHTML='<div style="color:var(--text3);font-size:12px;padding:6px">Nenhum recurso cadastrado</div>';return;}
+  c.innerHTML=all.map(r=>{
+    const sel=_mRes.includes(r.id);
+    const icoById={'AR-78':'🚙'};
+    const ico=icoById[r.id]||{vehicle:'🚒',aircraft:'🚁',vessel:'⛵'}[r.type]||'📦';
+    const sp={available:'p-green',deployed:'p-amber',maintenance:'p-red'}[r.st];
+    const sl={available:'Disponível',deployed:'Em Op.',maintenance:'Manut.'}[r.st];
+    return `<div onclick="togMR('${r.id}')" style="display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:4px;cursor:pointer;border:1px solid ${sel?'rgba(232,160,32,.4)':'var(--border)'};background:${sel?'rgba(232,160,32,.07)':'var(--bg4)'};transition:all .12s">
+      <div style="font-size:14px;flex-shrink:0">${ico}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600">${r.id} – ${r.name}</div>
+        <div style="font-size:10px;color:var(--text3)">${r.sub}</div>
+      </div>
+      <span class="pill ${sp}">${sl}</span>
+      <div style="width:16px;height:16px;border:1px solid ${sel?'var(--accent)':'var(--border2)'};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;background:${sel?'var(--accent)':'var(--bg3)'}; color:${sel?'#000':'transparent'}">${sel?'✓':''}</div>
+    </div>`;
+  }).join('');
+}
+
+function togMR(id){const i=_mRes.indexOf(id);i===-1?_mRes.push(id):_mRes.splice(i,1);renderMReslist();}
+
+function renderMPicker(){
+  const q=(document.getElementById('ms-psearch').value||'').toLowerCase();
+  const c=document.getElementById('ms-picker');
+  const list=DB.personnel.filter(p=>!q||p.wn.toLowerCase().includes(q)||p.fn.toLowerCase().includes(q));
+  c.innerHTML=list.map(p=>`
+    <div class="pi ${_mPers.includes(p.id)?'sel':''}" onclick="togMP(${p.id})">
+      <div class="mil-av ${isOff(p.rank)?'off':'sgt'}" style="width:26px;height:26px;font-size:10px">${ini(p.wn)}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600">${p.rank} ${p.wn}</div><div style="font-size:11px;color:var(--text3)">${p.fn}</div></div>
+      <span class="pill ${spill(p.st)}">${p.st}</span>
+    </div>`).join('');
+}
+
+function togMP(id){const i=_mPers.indexOf(id);i===-1?_mPers.push(id):_mPers.splice(i,1);renderMPicker();}
+
+function createMission(){
+  const type=v('ms-type'),desc=v('ms-desc')||type,sec=v('ms-sec')||'Geral',pri=v('ms-pri');
+  const now=new Date();
+  const m={id:'MIS-'+String(DB.missions.length+1).padStart(3,'0'),type,desc,sec,pri,personnel:[..._mPers],resources:[..._mRes],time:now,ts:fmt(now),st:'ATIVA'};
+  DB.missions.push(m);
+  fbSaveMission(m); // ← Firebase
+  addLog(`Missão criada: <strong>${m.id} – ${m.desc}</strong> · Setor: ${sec}`,'info');
+  _mPers=[];_mRes=[];
+  renderMissions(); metrics();
+  closeModal('m-mis'); toast('Missão '+m.id+' criada!','success');
+  ['ms-desc','ms-sec'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+}
+
+function renderMissions(){
+  document.getElementById('mis-badge').textContent=DB.missions.filter(m=>m.st==='ATIVA').length;
+  const el=document.getElementById('mis-view');
+  if(!DB.missions.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:40px">Nenhuma missão criada</div>';renderDashMis();return;}
+  el.innerHTML=DB.missions.map(m=>{
+    const team=m.personnel.map(id=>DB.personnel.find(p=>p.id===id)).filter(Boolean);
+    const allRes=[...DB.vehicles,...DB.aircraft,...DB.vessels];
+    const mRes=(m.resources||[]).map(id=>allRes.find(r=>r.id===id)).filter(Boolean);
+    return `<div class="mis-card">
+      <div class="mis-top">
+        <div><div class="mis-id">${m.id} · ${m.ts} · Setor: ${m.sec}</div><div class="mis-title">${m.desc}</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <span class="pill ${m.pri==='ALTA'?'p-red':m.pri==='MÉDIA'?'p-amber':'p-green'}">${m.pri}</span>
+          <span class="pill ${m.st==='ATIVA'?'p-green':'p-gray'}">${m.st}</span>
+        </div>
+      </div>
+      <div class="mis-meta"><span class="pill p-blue">${m.type}</span></div>
+      <div class="mis-team" style="margin-top:7px">
+        <span style="font-size:11px;color:var(--text3);margin-right:4px">👥 Equipe:</span>
+        ${team.length?team.map(p=>`<span class="pill p-gray">${p.rank} ${p.wn}</span>`).join(''):'<span style="color:var(--text3);font-size:11px">Nenhum designado</span>'}
+      </div>
+      ${mRes.length?`<div class="mis-team" style="margin-top:5px">
+        <span style="font-size:11px;color:var(--text3);margin-right:4px">🚒 Recursos:</span>
+        ${mRes.map(r=>`<span class="pill p-amber">${r.id}</span>`).join('')}
+      </div>`:''}
+      <div style="margin-top:9px;display:flex;gap:6px">
+        ${m.st==='ATIVA'?`<button class="btn btn-s btn-xs" onclick="misSt('${m.id}','CONCLUÍDA')">✓ Concluir</button>`:''}
+        <button class="btn btn-d btn-xs" onclick="delMis('${m.id}')">✕ Remover</button>
+      </div>
+    </div>`;}).join('');
+  renderDashMis();
+}
+function misSt(id,st){const m=DB.missions.find(x=>x.id===id);if(m){m.st=st;fbUpdateMission(id,{st});renderMissions();metrics();addLog(`Missão <strong>${id}</strong> marcada como ${st}`,'info');}}
+function delMis(id){DB.missions=DB.missions.filter(m=>m.id!==id);fbDeleteMission(id);renderMissions();metrics();}
+function renderDashMis(){
+  const el=document.getElementById('dash-mis');
+  const a=DB.missions.filter(m=>m.st==='ATIVA').slice(0,4);
+  if(!a.length){el.innerHTML='<div style="color:var(--text3);font-size:12px;text-align:center;padding:20px">Nenhuma missão ativa</div>';return;}
+  el.innerHTML=a.map(m=>`<div style="padding:7px 0;border-bottom:1px solid var(--border)">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:10px;font-family:var(--fm);color:var(--text3)">${m.id}</span>
+      <span class="pill ${m.pri==='ALTA'?'p-red':m.pri==='MÉDIA'?'p-amber':'p-green'}">${m.pri}</span>
+    </div>
+    <div style="font-size:13px;font-weight:600;margin-top:1px">${m.desc}</div>
+    <div style="font-size:11px;color:var(--text3)">${m.sec} · ${m.ts}</div>
+  </div>`).join('');
+}
+
+// ─── RESOURCES ───
+let _rtype='vehicle';
+function openResModal(t){
+  _rtype=t;
+  const tl={vehicle:'🚒 Adicionar Viatura',aircraft:'🚁 Adicionar Aeronave',vessel:'⛵ Adicionar Embarcação'};
+  document.getElementById('res-title').textContent=tl[t];
+  ['r-id','r-name','r-sub','r-crew','r-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  openModal('m-res');
+}
+function saveRes(){
+  const r={id:v('r-id')||'REC-'+Date.now(),name:v('r-name')||'Recurso',sub:v('r-sub'),st:v('r-stat'),crew:v('r-crew'),obs:v('r-obs'),type:_rtype};
+  if(_rtype==='vehicle')DB.vehicles.push(r);
+  else if(_rtype==='aircraft')DB.aircraft.push(r);
+  else DB.vessels.push(r);
+  fbSaveResource(r); // ← Firebase
+  renderVehicles();renderAircraft();renderVessels();renderDashRes();metrics();
+  addLog(`Recurso adicionado: <strong>${r.id} – ${r.name}</strong>`,'info');
+  toast(r.name+' adicionado(a)!','success'); closeModal('m-res');
+}
+function rcHTML(r){
+  const icoById={'AR-78':'🚙'};
+  const ico=icoById[r.id]||{vehicle:'🚒',aircraft:'🚁',vessel:'⛵'}[r.type]||'📦';
+  const slbl={available:'Disponível',deployed:'Em Operação',maintenance:'Manutenção'}[r.st];
+  const sp={available:'p-green',deployed:'p-amber',maintenance:'p-red'}[r.st];
+  return `<div class="res-card ${r.st}">
+    <div class="rc-ico">${ico}</div>
+    <div class="rc-id">${r.id}</div>
+    <div class="rc-name">${r.name}</div>
+    <div class="rc-sub">${r.sub}</div>
+    <span class="pill ${sp}">${slbl}</span>
+    ${r.crew?`<div style="font-size:11px;color:var(--text2);margin-top:6px">👥 ${r.crew}</div>`:''}
+    ${r.obs?`<div style="font-size:11px;color:var(--text3);margin-top:3px">${r.obs}</div>`:''}
+    <select class="rc-sel" onchange="chgSt('${r.id}','${r.type}',this.value)">
+      <option value="available" ${r.st==='available'?'selected':''}>Disponível</option>
+      <option value="deployed" ${r.st==='deployed'?'selected':''}>Em Operação</option>
+      <option value="maintenance" ${r.st==='maintenance'?'selected':''}>Manutenção</option>
+    </select>
+  </div>`;
+}
+function chgSt(id,type,st){
+  const list=type==='vehicle'?DB.vehicles:type==='aircraft'?DB.aircraft:DB.vessels;
+  const r=list.find(x=>x.id===id);
+  if(r){r.st=st;fbUpdateResourceStatus(id,type,st);renderVehicles();renderAircraft();renderVessels();renderDashRes();metrics();}
+}
+function renderVehicles(){document.getElementById('v-cards').innerHTML=DB.vehicles.map(rcHTML).join('')}
+function renderAircraft(){document.getElementById('a-cards').innerHTML=DB.aircraft.map(rcHTML).join('')}
+function renderVessels(){document.getElementById('e-cards').innerHTML=DB.vessels.map(rcHTML).join('')}
+function renderDashRes(){
+  const sh=list=>list.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
+    <span style="font-size:12px;font-weight:600">${r.id}</span>
+    <span style="font-size:11px;color:var(--text3);flex:1;margin:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.name}</span>
+    <span class="pill ${{available:'p-green',deployed:'p-amber',maintenance:'p-red'}[r.st]}">${{available:'Disp.',deployed:'Em Op.',maintenance:'Manut.'}[r.st]}</span>
+  </div>`).join('')||'<div style="color:var(--text3);font-size:12px;padding:8px 0">Nenhum cadastrado</div>';
+  document.getElementById('dash-v').innerHTML=sh(DB.vehicles);
+  document.getElementById('dash-a').innerHTML=sh(DB.aircraft);
+  document.getElementById('dash-e').innerHTML=sh(DB.vessels);
+}
+
+// ─── PERSONNEL ───
+let _pfilt='all';
+function pfilt(f,el){_pfilt=f;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(el)el.classList.add('active');renderPers();}
+function renderPers(){
+  const q=(document.getElementById('p-search')?.value||'').toLowerCase();
+  let list=DB.personnel.filter(p=>{
+    const mq=!q||p.wn.toLowerCase().includes(q)||p.fn.toLowerCase().includes(q)||p.rank.toLowerCase().includes(q)||p.role.toLowerCase().includes(q);
+    const mf=_pfilt==='all'||(_pfilt==='FERIAS'&&(p.st==='FERIAS'||p.st==='LICENCA'))||(_pfilt==='AFASTADO'&&p.st==='AFASTADO')||p.st===_pfilt;
+    return mq&&mf;
+  });
+  document.getElementById('p-cnt').textContent='('+DB.personnel.length+')';
+  document.getElementById('p-cnt-p').textContent='('+DB.personnel.filter(p=>p.st==='PRONTO').length+')';
+  document.getElementById('per-list').innerHTML=list.map(p=>`
+    <div class="mil">
+      <div class="mil-av ${isOff(p.rank)?'off':'sgt'}">${ini(p.wn)}</div>
+      <div class="mil-info">
+        <div class="mil-name">${p.rank} ${p.quad} ${p.wn}</div>
+        <div class="mil-role">${p.fn}</div>
+        <div class="mil-role" style="margin-top:1px">${p.role}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+        <span class="pill ${spill(p.st)}">${p.st}</span>
+        <span class="mil-phone">${p.ph}</span>
+      </div>
+    </div>`).join('')||'<div style="color:var(--text3);font-size:12px;padding:20px;text-align:center">Nenhum resultado</div>';
+}
+function addPer(){
+  const p={id:DB.personnel.length+1,rank:v('ap-rank'),quad:v('ap-quad'),wn:(v('ap-wn')||'NOVO').toUpperCase(),fn:v('ap-fn')||'Nome não informado',ph:v('ap-ph')||'—',role:v('ap-role')||'—',st:v('ap-stat')};
+  DB.personnel.push(p);
+  fbSavePersonnel(p); // ← Firebase
+  renderPers();metrics();
+  addLog(`Militar adicionado: <strong>${p.rank} ${p.wn}</strong>`,'info');
+  toast(p.rank+' '+p.wn+' adicionado!','success');closeModal('m-addper');
+}
+
+// ─── LOG ───
+function addLog(txt,type='info'){
+  const entry={txt,type,t:fmt(new Date())};
+  DB.log.unshift(entry);
+  fbSaveLog(entry); // ← Firebase
+  renderLog();
+}
+function renderLog(){
+  const el=document.getElementById('log-ent');
+  if(!DB.log.length){el.innerHTML='<div style="color:var(--text3);font-size:12px;text-align:center;padding:20px">Nenhum registro</div>';return;}
+  el.innerHTML=DB.log.slice(0,150).map(l=>`
+    <div class="log-e">
+      <span class="log-t">${l.t}</span>
+      <span class="pill ${l.type==='danger'?'p-red':l.type==='success'?'p-green':'p-blue'}" style="flex-shrink:0">${l.type.toUpperCase()}</span>
+      <span class="log-msg">${l.txt}</span>
+    </div>`).join('');
+}
+
+// ─── METRICS ───
+function metrics(){
+  document.getElementById('m1').textContent=DB.incidents.filter(i=>i.st==='ATIVO').length;
+  const filled=Object.keys(DB.assign).filter(k=>DB.assign[k]).length;
+  document.getElementById('m2').textContent=filled;
+  document.getElementById('m2s').textContent='de '+Object.keys(SLOTS).length+' postos SCI';
+  document.getElementById('sci-fill').textContent=filled;
+  const allR=[...DB.vehicles,...DB.aircraft,...DB.vessels];
+  document.getElementById('m3').textContent=allR.filter(r=>r.st==='deployed').length;
+  document.getElementById('m4').textContent=DB.missions.filter(m=>m.st==='ATIVA').length;
+}
+
+// ─── EXPORT ───
+function exportSCI(){
+  let txt='═══════════════════════════════════════════\n';
+  txt+='   FORMULÁRIO ICS-201 – 6º BBM · CBMMA\n';
+  txt+='═══════════════════════════════════════════\n';
+  txt+=new Date().toLocaleString('pt-BR')+'\n\n';
+  const inc=DB.incidents.find(i=>i.st==='ATIVO');
+  txt+='INCIDENTE: '+(inc?inc.desc+' ('+inc.id+')':'Não informado')+'\n';
+  txt+='LOCAL: '+(inc?inc.city:'—')+'\n';
+  txt+='PRIORIDADE: '+(inc?inc.pri:'—')+'\n\n';
+  txt+='──── ESTRUTURA SCI ────\n';
+  Object.entries(SLOTS).forEach(([k,info])=>{
+    const p=DB.assign[k];
+    txt+=info[1]+': '+(p?p.rank+' '+p.quad+' '+p.wn+' – '+p.fn+' ('+p.ph+')':'NÃO DESIGNADO')+'\n';
+  });
+  txt+='\n──── RECURSOS ────\n';
+  [...DB.vehicles,...DB.aircraft,...DB.vessels].forEach(r=>{
+    txt+=r.id+' – '+r.name+' ['+{available:'DISPONÍVEL',deployed:'EM OPERAÇÃO',maintenance:'MANUTENÇÃO'}[r.st]+']\n';
+  });
+  txt+='\n──── MISSÕES ────\n';
+  DB.missions.forEach(m=>{
+    txt+=m.id+' – '+m.desc+' · '+m.sec+' · '+m.pri+' · '+m.st+'\n';
+    const team=m.personnel.map(id=>{const p=DB.personnel.find(x=>x.id===id);return p?p.rank+' '+p.wn:'?';});
+    txt+='  Equipe: '+(team.join(', ')||'N/A')+'\n';
+  });
+  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='ICS201_6BBM_'+Date.now()+'.txt';a.click();
+  toast('ICS-201 exportado!','success');
+}
+
+// ─── TOAST ───
+function toast(msg,type='info'){
+  const c=document.getElementById('toasts');
+  const t=document.createElement('div');
+  t.className='toast '+type;
+  t.innerHTML=(type==='success'?'✓':type==='error'?'✕':'ℹ')+' '+msg;
+  c.appendChild(t);
+  setTimeout(()=>t.style.opacity='0',2600);
+  setTimeout(()=>t.remove(),3100);
+}
+
+// ─── HELPERS ───
+function v(id){const el=document.getElementById(id);return el?el.value:'';}
+function fmt(d){return [d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');}
+function isOff(r){return['MAJ','CAP','1º TEN','2º TEN','ASP OF BM'].includes(r);}
+function ini(n){const p=n.trim().split(' ');return p.length>1?p[0][0]+p[1][0]:n.substring(0,2).toUpperCase();}
+function spill(s){return s==='PRONTO'?'p-green':s==='EMPREGADO'?'p-amber':s==='AFASTADO'?'p-red':(s==='FERIAS'||s==='EM GOZO DE FÉRIAS')?'p-blue':(s==='LICENCA'||s==='EM GOZO DE LICENÇA-PRÊMIO')?'p-purple':'p-gray';}
+
+init();
+</script>
+</body>
+</html>
