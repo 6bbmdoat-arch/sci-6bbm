@@ -243,9 +243,15 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .fta{resize:vertical;min-height:70px}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
+/* ── SCROLLBARS – largura aumentada ── */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--gray-d)}
+
 /* ── PICKER ── */
 .picker{max-height:260px;overflow-y:auto}
-.picker::-webkit-scrollbar{width:3px}.picker::-webkit-scrollbar-thumb{background:var(--border2)}
+.picker::-webkit-scrollbar{width:8px}.picker::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 .pi{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:4px;cursor:pointer;transition:background .1s}
 .pi:hover{background:var(--bg3)}
 .pi.sel{background:rgba(232,160,32,.08);border:1px solid rgba(232,160,32,.25);border-radius:4px}
@@ -653,14 +659,19 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="m-hdr"><div class="m-title">◎ Nova Missão</div><button class="m-close" onclick="closeModal('m-mis')">✕</button></div>
     <div class="m-body">
       <div class="fg"><label class="fl">Tipo de Missão</label>
-        <select class="fs" id="ms-type">
+        <select class="fs" id="ms-type" onchange="togMisOutro(this.value)">
           <option>Ataque Direto</option><option>Ataque Indireto</option>
           <option>Resgate de Vítimas</option><option>Busca Terrestre</option>
           <option>Busca Aquática</option><option>Busca Aérea</option>
           <option>Triagem / APH</option><option>Evacuação de Área</option>
           <option>Reconhecimento</option><option>Apoio Logístico</option>
           <option>Contenção HAZMAT</option><option>Controle de Área</option>
+          <option value="outro">Outro...</option>
         </select>
+      </div>
+      <div class="fg" id="ms-outro-box" style="display:none">
+        <label class="fl">Especifique o tipo de missão</label>
+        <input class="fi" id="ms-outro-txt" placeholder="Descreva o tipo de missão...">
       </div>
       <div class="fg"><label class="fl">Descrição / Objetivo</label><input class="fi" id="ms-desc" placeholder="Descreva o objetivo da missão"></div>
       <div class="fr">
@@ -1050,6 +1061,9 @@ function openMissionModal(){
   _mPers=[];_mRes=[];
   renderMPicker();
   renderMReslist();
+  document.getElementById('ms-outro-box').style.display='none';
+  const sel=document.getElementById('ms-type');
+  if(sel) sel.selectedIndex=0;
   openModal('m-mis');
 }
 
@@ -1091,8 +1105,20 @@ function renderMPicker(){
 
 function togMP(id){const i=_mPers.indexOf(id);i===-1?_mPers.push(id):_mPers.splice(i,1);renderMPicker();}
 
+function togMisOutro(val){
+  const box=document.getElementById('ms-outro-box');
+  box.style.display=val==='outro'?'block':'none';
+  if(val==='outro') document.getElementById('ms-outro-txt').focus();
+}
+
 function createMission(){
-  const type=v('ms-type'),desc=v('ms-desc')||type,sec=v('ms-sec')||'Geral',pri=v('ms-pri');
+  let type=v('ms-type');
+  if(type==='outro'){
+    const custom=v('ms-outro-txt').trim();
+    if(!custom){toast('Descreva o tipo de missão','error');return;}
+    type=custom;
+  }
+  const desc=v('ms-desc')||type,sec=v('ms-sec')||'Geral',pri=v('ms-pri');
   const now=new Date();
   const m={id:'MIS-'+String(DB.missions.length+1).padStart(3,'0'),type,desc,sec,pri,personnel:[..._mPers],resources:[..._mRes],time:now,ts:fmt(now),st:'ATIVA'};
   DB.missions.push(m);
