@@ -1,19 +1,13 @@
 /**
- * firebase.js — Configuração do Firebase para SCI 6° BBM
- *
- * COMO PREENCHER:
- * 1. Acesse https://console.firebase.google.com
- * 2. Selecione seu projeto "sci-6bbm"
- * 3. Clique em ⚙ Configurações do projeto → Seus apps → Web
- * 4. Copie os valores do objeto firebaseConfig e cole abaixo
+ * firebase.js — Configuração do Firebase · SCI 6° BBM
  */
 
 const FIREBASE_CONFIG = {
-  apiKey:            "COLE_AQUI_SUA_API_KEY",
-  authDomain:        "COLE_AQUI.firebaseapp.com",
-  databaseURL:       "https://COLE_AQUI-default-rtdb.firebaseio.com",
-  projectId:         "COLE_AQUI",
-  storageBucket:     "COLE_AQUI.appspot.com",
-  messagingSenderId: "COLE_AQUI",
-  appId:             "COLE_AQUI"
+  apiKey:            "AIzaSyC1OQdZ3uKeBy6AaTZYPhOBrhCaGgtiUvI",
+  authDomain:        "sci-6bbm.firebaseapp.com",
+  databaseURL:       "https://sci-6bbm-default-rtdb.firebaseio.com",
+  projectId:         "sci-6bbm",
+  storageBucket:     "sci-6bbm.firebasestorage.app",
+  messagingSenderId: "254342594532",
+  appId:             "1:254342594532:web:7d89c039def7f8750111f1"
 };
