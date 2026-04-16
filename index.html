@@ -307,6 +307,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="nav" onclick="go('vehicles')"><span class="nav-ico">🚒</span>Viaturas</div>
     <div class="nav" onclick="go('aircraft')"><span class="nav-ico">🚁</span>Aeronaves</div>
     <div class="nav" onclick="go('vessels')"><span class="nav-ico">⛵</span>Embarcações</div>
+    <div class="nav" onclick="go('equipment')"><span class="nav-ico">🪖</span>Equipamentos</div>
   </div>
   <div class="sb-sect">
     <div class="sb-lbl">Gestão</div>
@@ -340,10 +341,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <div id="dash-mis"><div style="color:var(--text3);font-size:12px;text-align:center;padding:20px">Nenhuma missão</div></div>
     </div>
   </div>
-  <div class="g3">
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
     <div class="card ct-red"><div class="card-hdr"><div class="card-ttl">🚒 Viaturas</div></div><div id="dash-v"></div></div>
     <div class="card" style="border-top:2px solid #a060e8"><div class="card-hdr"><div class="card-ttl">🚁 Aeronaves</div></div><div id="dash-a"></div></div>
     <div class="card ct-blue"><div class="card-hdr"><div class="card-ttl">⛵ Embarcações</div></div><div id="dash-e"></div></div>
+    <div class="card" style="border-top:2px solid var(--green-l)"><div class="card-hdr"><div class="card-ttl">🪖 Equipamentos</div><button class="btn btn-s btn-xs" onclick="go('equipment')">Ver</button></div><div id="dash-eq"></div></div>
   </div>
 </div>
 
@@ -552,6 +554,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div class="res-grid" id="e-cards"></div>
 </div>
 
+<!-- ═══ EQUIPMENT ═══ -->
+<div class="view" id="view-equipment">
+  <div class="s-hdr">
+    <div class="s-title">Equipamentos <span class="s-tag">RECURSOS</span></div>
+    <button class="btn btn-p btn-sm" onclick="openEqModal()">+ Adicionar Equipamento</button>
+  </div>
+  <div class="res-grid" id="eq-cards">
+    <div style="color:var(--text3);font-size:13px;text-align:center;padding:40px;grid-column:1/-1">Nenhum equipamento cadastrado</div>
+  </div>
+</div>
+
 <!-- ═══ PERSONNEL ═══ -->
 <div class="view" id="view-personnel">
   <div class="s-hdr">
@@ -687,12 +700,61 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       </div>
       <div class="fg">
         <label class="fl">Viaturas / Aeronaves / Embarcações Empregadas</label>
-        <div id="ms-res-list" style="display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto"></div>
+        <div id="ms-res-list" style="display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto"></div>
+      </div>
+      <div class="fg">
+        <label class="fl">Equipamentos Empregados</label>
+        <div id="ms-eq-list" style="display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto"></div>
       </div>
     </div>
     <div class="m-foot">
       <button class="btn btn-s" onclick="closeModal('m-mis')">Cancelar</button>
       <button class="btn btn-p" onclick="createMission()">Criar Missão</button>
+    </div>
+  </div>
+</div>
+
+<!-- EQUIPAMENTO -->
+<div class="mbk" id="m-eq">
+  <div class="modal">
+    <div class="m-hdr"><div class="m-title">🪖 Adicionar Equipamento</div><button class="m-close" onclick="closeModal('m-eq')">✕</button></div>
+    <div class="m-body">
+      <div class="fr">
+        <div class="fg"><label class="fl">Código / Identificação</label><input class="fi" id="eq-id" placeholder="Ex: EQ-001, MOTO-SERRA-01"></div>
+        <div class="fg"><label class="fl">Nome do Equipamento</label><input class="fi" id="eq-name" placeholder="Ex: Motosserra, EPR, Mangueira"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Categoria</label>
+          <select class="fs" id="eq-cat">
+            <option>Combate a Incêndio</option>
+            <option>Resgate / Salvamento</option>
+            <option>APH / Médico</option>
+            <option>Comunicação</option>
+            <option>EPI / Proteção</option>
+            <option>Mergulho / Aquático</option>
+            <option>Ferramentas</option>
+            <option>Iluminação</option>
+            <option>HAZMAT</option>
+            <option>Outro</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Status</label>
+          <select class="fs" id="eq-st">
+            <option value="available">Disponível</option>
+            <option value="deployed">Em Uso</option>
+            <option value="maintenance">Manutenção</option>
+          </select>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Quantidade</label><input class="fi" id="eq-qty" type="number" min="1" value="1" placeholder="1"></div>
+        <div class="fg"><label class="fl">Localização / Responsável</label><input class="fi" id="eq-loc" placeholder="Ex: Almoxarifado, ABT-14"></div>
+      </div>
+      <div class="fg"><label class="fl">Observações</label><textarea class="fta" id="eq-obs" placeholder="Condições, validade, número de série..."></textarea></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-s" onclick="closeModal('m-eq')">Cancelar</button>
+      <button class="btn btn-p" onclick="saveEquipment()">Salvar</button>
     </div>
   </div>
 </div>
@@ -776,7 +838,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <!-- ══════════ SCRIPT ══════════ -->
 <script>
 // ─── DATA ───
-const DB = { incidents:[], missions:[], assign:{}, vehicles:[], aircraft:[], vessels:[], personnel:[], log:[] };
+const DB = { incidents:[], missions:[], assign:{}, vehicles:[], aircraft:[], vessels:[], equipment:[], personnel:[], log:[] };
 
 // ─── PERSONNEL (21 militares 6º BBM) ───
 const PERSONNEL0 = [
@@ -858,8 +920,9 @@ function init(){
   DB.vehicles=[...VEHICLES0];
   DB.aircraft=[...AIRCRAFT0];
   DB.vessels=[...VESSELS0];
-  renderPers(); renderVehicles(); renderAircraft(); renderVessels();
-  renderDashRes(); metrics();
+  DB.equipment=[];
+  renderPers(); renderVehicles(); renderAircraft(); renderVessels(); renderEquipment();
+  renderDashRes(); renderDashEq(); metrics();
   clock();
   addLog('Sistema SCI iniciado – 6º BBM · CBMMA','info');
 }
@@ -1055,12 +1118,13 @@ function refreshSlot(key){
 }
 
 // ─── MISSIONS ───
-let _mPers=[],_mRes=[];
+let _mPers=[],_mRes=[],_mEq=[];
 
 function openMissionModal(){
-  _mPers=[];_mRes=[];
+  _mPers=[];_mRes=[];_mEq=[];
   renderMPicker();
   renderMReslist();
+  renderMEqList();
   document.getElementById('ms-outro-box').style.display='none';
   const sel=document.getElementById('ms-type');
   if(sel) sel.selectedIndex=0;
@@ -1120,11 +1184,11 @@ function createMission(){
   }
   const desc=v('ms-desc')||type,sec=v('ms-sec')||'Geral',pri=v('ms-pri');
   const now=new Date();
-  const m={id:'MIS-'+String(DB.missions.length+1).padStart(3,'0'),type,desc,sec,pri,personnel:[..._mPers],resources:[..._mRes],time:now,ts:fmt(now),st:'ATIVA'};
+  const m={id:'MIS-'+String(DB.missions.length+1).padStart(3,'0'),type,desc,sec,pri,personnel:[..._mPers],resources:[..._mRes],equipment:[..._mEq],time:now,ts:fmt(now),st:'ATIVA'};
   DB.missions.push(m);
   fbSaveMission(m); // ← Firebase
   addLog(`Missão criada: <strong>${m.id} – ${m.desc}</strong> · Setor: ${sec}`,'info');
-  _mPers=[];_mRes=[];
+  _mPers=[];_mRes=[];_mEq=[];
   renderMissions(); metrics();
   closeModal('m-mis'); toast('Missão '+m.id+' criada!','success');
   ['ms-desc','ms-sec'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -1138,6 +1202,7 @@ function renderMissions(){
     const team=m.personnel.map(id=>DB.personnel.find(p=>p.id===id)).filter(Boolean);
     const allRes=[...DB.vehicles,...DB.aircraft,...DB.vessels];
     const mRes=(m.resources||[]).map(id=>allRes.find(r=>r.id===id)).filter(Boolean);
+    const mEq=(m.equipment||[]).map(id=>DB.equipment.find(e=>e.id===id)).filter(Boolean);
     return `<div class="mis-card">
       <div class="mis-top">
         <div><div class="mis-id">${m.id} · ${m.ts} · Setor: ${m.sec}</div><div class="mis-title">${m.desc}</div></div>
@@ -1154,6 +1219,10 @@ function renderMissions(){
       ${mRes.length?`<div class="mis-team" style="margin-top:5px">
         <span style="font-size:11px;color:var(--text3);margin-right:4px">🚒 Recursos:</span>
         ${mRes.map(r=>`<span class="pill p-amber">${r.id}</span>`).join('')}
+      </div>`:''}
+      ${mEq.length?`<div class="mis-team" style="margin-top:5px">
+        <span style="font-size:11px;color:var(--text3);margin-right:4px">🪖 Equipamentos:</span>
+        ${mEq.map(e=>`<span class="pill p-green">${e.id} – ${e.name}</span>`).join('')}
       </div>`:''}
       <div style="margin-top:9px;display:flex;gap:6px">
         ${m.st==='ATIVA'?`<button class="btn btn-s btn-xs" onclick="misSt('${m.id}','CONCLUÍDA')">✓ Concluir</button>`:''}
@@ -1177,6 +1246,92 @@ function renderDashMis(){
     <div style="font-size:11px;color:var(--text3)">${m.sec} · ${m.ts}</div>
   </div>`).join('');
 }
+
+// ─── EQUIPMENT ───
+function openEqModal(){
+  ['eq-id','eq-name','eq-qty','eq-loc','eq-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=id==='eq-qty'?'1':'';});
+  openModal('m-eq');
+}
+
+function saveEquipment(){
+  const eq={
+    id:   v('eq-id')||'EQ-'+Date.now(),
+    name: v('eq-name')||'Equipamento',
+    cat:  v('eq-cat'),
+    st:   v('eq-st'),
+    qty:  parseInt(v('eq-qty'))||1,
+    loc:  v('eq-loc'),
+    obs:  v('eq-obs'),
+    type: 'equipment'
+  };
+  DB.equipment.push(eq);
+  if(typeof fbSet==='function') fbSet('equipment/'+eq.id, eq);
+  renderEquipment(); renderDashEq(); metrics();
+  addLog(`Equipamento adicionado: <strong>${eq.id} – ${eq.name}</strong>`,'info');
+  toast(eq.name+' adicionado!','success');
+  closeModal('m-eq');
+}
+
+function renderEquipment(){
+  const c=document.getElementById('eq-cards');
+  if(!c)return;
+  if(!DB.equipment.length){c.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:40px;grid-column:1/-1">Nenhum equipamento cadastrado</div>';return;}
+  const slbl={available:'Disponível',deployed:'Em Uso',maintenance:'Manutenção'};
+  const sp={available:'p-green',deployed:'p-amber',maintenance:'p-red'};
+  c.innerHTML=DB.equipment.map(eq=>`
+    <div class="res-card ${eq.st}">
+      <div class="rc-ico">🪖</div>
+      <div class="rc-id">${eq.id}</div>
+      <div class="rc-name">${eq.name}</div>
+      <div class="rc-sub">${eq.cat}</div>
+      <span class="pill ${sp[eq.st]}">${slbl[eq.st]}</span>
+      <div style="font-size:11px;color:var(--text2);margin-top:5px">Qtd: <strong>${eq.qty}</strong>${eq.loc?' · '+eq.loc:''}</div>
+      ${eq.obs?`<div style="font-size:11px;color:var(--text3);margin-top:3px">${eq.obs}</div>`:''}
+      <select class="rc-sel" onchange="chgEqSt('${eq.id}',this.value)">
+        <option value="available" ${eq.st==='available'?'selected':''}>Disponível</option>
+        <option value="deployed"  ${eq.st==='deployed' ?'selected':''}>Em Uso</option>
+        <option value="maintenance" ${eq.st==='maintenance'?'selected':''}>Manutenção</option>
+      </select>
+    </div>`).join('');
+}
+
+function chgEqSt(id,st){
+  const eq=DB.equipment.find(x=>x.id===id);
+  if(eq){eq.st=st;if(typeof fbSet==='function')fbSet('equipment/'+id+'/st',st);renderEquipment();renderDashEq();}
+}
+
+function renderDashEq(){
+  const el=document.getElementById('dash-eq');
+  if(!el)return;
+  if(!DB.equipment.length){el.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px 0">Nenhum cadastrado</div>';return;}
+  el.innerHTML=DB.equipment.map(eq=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:12px;font-weight:600">${eq.id}</span>
+      <span style="font-size:11px;color:var(--text3);flex:1;margin:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${eq.name}</span>
+      <span class="pill ${{available:'p-green',deployed:'p-amber',maintenance:'p-red'}[eq.st]}">${{available:'Disp.',deployed:'Em Uso',maintenance:'Manut.'}[eq.st]}</span>
+    </div>`).join('');
+}
+
+function renderMEqList(){
+  const c=document.getElementById('ms-eq-list');
+  if(!c)return;
+  if(!DB.equipment.length){c.innerHTML='<div style="color:var(--text3);font-size:12px;padding:6px">Nenhum equipamento cadastrado</div>';return;}
+  const slbl={available:'Disponível',deployed:'Em Uso',maintenance:'Manutenção'};
+  const sp={available:'p-green',deployed:'p-amber',maintenance:'p-red'};
+  c.innerHTML=DB.equipment.map(eq=>{
+    const sel=_mEq.includes(eq.id);
+    return `<div onclick="togMEq('${eq.id}')" style="display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:4px;cursor:pointer;border:1px solid ${sel?'rgba(61,214,140,.4)':'var(--border)'};background:${sel?'rgba(61,214,140,.07)':'var(--bg4)'};transition:all .12s">
+      <div style="font-size:14px;flex-shrink:0">🪖</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600">${eq.id} – ${eq.name}</div>
+        <div style="font-size:10px;color:var(--text3)">${eq.cat} · Qtd: ${eq.qty}</div>
+      </div>
+      <span class="pill ${sp[eq.st]}">${slbl[eq.st]}</span>
+      <div style="width:16px;height:16px;border:1px solid ${sel?'var(--green-l)':'var(--border2)'};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;background:${sel?'var(--green-l)':'var(--bg3)'};color:${sel?'#000':'transparent'}">${sel?'✓':''}</div>
+    </div>`;
+  }).join('');
+}
+function togMEq(id){const i=_mEq.indexOf(id);i===-1?_mEq.push(id):_mEq.splice(i,1);renderMEqList();}
 
 // ─── RESOURCES ───
 let _rtype='vehicle';
