@@ -1256,11 +1256,27 @@ function renderPers(){
         <div class="mil-role">${p.fn}</div>
         <div class="mil-role" style="margin-top:1px">${p.role}</div>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
-        <span class="pill ${spill(p.st)}">${p.st}</span>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <select onchange="chgPerSt(${p.id},this.value)"
+          style="background:var(--bg4);border:1px solid var(--border2);color:var(--text);border-radius:4px;padding:3px 7px;font-size:11px;font-family:var(--fm);cursor:pointer;outline:none">
+          <option value="PRONTO"     ${p.st==='PRONTO'    ?'selected':''}>PRONTO</option>
+          <option value="EMPREGADO"  ${p.st==='EMPREGADO' ?'selected':''}>EMPREGADO</option>
+          <option value="AFASTADO"   ${p.st==='AFASTADO'  ?'selected':''}>AFASTADO</option>
+          <option value="FERIAS"     ${p.st==='FERIAS'    ?'selected':''}>EM FÉRIAS</option>
+          <option value="LICENCA"    ${p.st==='LICENCA'   ?'selected':''}>EM LICENÇA</option>
+        </select>
         <span class="mil-phone">${p.ph}</span>
       </div>
     </div>`).join('')||'<div style="color:var(--text3);font-size:12px;padding:20px;text-align:center">Nenhum resultado</div>';
+}
+function chgPerSt(id,st){
+  const p=DB.personnel.find(x=>x.id===id);
+  if(!p)return;
+  p.st=st;
+  if(typeof fbSavePersonnel==='function') fbSavePersonnel(p);
+  renderPers(); metrics();
+  addLog(`Status de <strong>${p.rank} ${p.wn}</strong> alterado para <strong>${st}</strong>`,'info');
+  toast(p.wn+' → '+st,'success');
 }
 function addPer(){
   const p={id:DB.personnel.length+1,rank:v('ap-rank'),quad:v('ap-quad'),wn:(v('ap-wn')||'NOVO').toUpperCase(),fn:v('ap-fn')||'Nome não informado',ph:v('ap-ph')||'—',role:v('ap-role')||'—',st:v('ap-stat')};
