@@ -1175,6 +1175,32 @@ function togMisOutro(val){
   if(val==='outro') document.getElementById('ms-outro-txt').focus();
 }
 
+// ── sincroniza status dos recursos com a missão ──
+function syncResources(resIds, st){
+  const allLists = [
+    {list: DB.vehicles,  type: 'vehicle'},
+    {list: DB.aircraft,  type: 'aircraft'},
+    {list: DB.vessels,   type: 'vessel'},
+  ];
+  resIds.forEach(rid => {
+    allLists.forEach(({list, type}) => {
+      const r = list.find(x => x.id === rid);
+      if(r){
+        // só muda para disponível se nenhuma outra missão ativa ainda usa o recurso
+        if(st === 'available'){
+          const ainda = DB.missions.some(m =>
+            m.st === 'ATIVA' && (m.resources||[]).includes(rid)
+          );
+          if(ainda) return;
+        }
+        r.st = st;
+        fbUpdateResourceStatus(rid, type, st);
+      }
+    });
+  });
+  renderVehicles(); renderAircraft(); renderVessels(); renderDashRes(); metrics();
+}
+
 function createMission(){
   let type=v('ms-type');
   if(type==='outro'){
@@ -1186,7 +1212,9 @@ function createMission(){
   const now=new Date();
   const m={id:'MIS-'+String(DB.missions.length+1).padStart(3,'0'),type,desc,sec,pri,personnel:[..._mPers],resources:[..._mRes],equipment:[..._mEq],time:now,ts:fmt(now),st:'ATIVA'};
   DB.missions.push(m);
-  fbSaveMission(m); // ← Firebase
+  fbSaveMission(m);
+  // ← sincroniza recursos para "Em Operação"
+  if(m.resources.length) syncResources(m.resources, 'deployed');
   addLog(`Missão criada: <strong>${m.id} – ${m.desc}</strong> · Setor: ${sec}`,'info');
   _mPers=[];_mRes=[];_mEq=[];
   renderMissions(); metrics();
@@ -1231,8 +1259,29 @@ function renderMissions(){
     </div>`;}).join('');
   renderDashMis();
 }
-function misSt(id,st){const m=DB.missions.find(x=>x.id===id);if(m){m.st=st;fbUpdateMission(id,{st});renderMissions();metrics();addLog(`Missão <strong>${id}</strong> marcada como ${st}`,'info');}}
-function delMis(id){DB.missions=DB.missions.filter(m=>m.id!==id);fbDeleteMission(id);renderMissions();metrics();}
+function misSt(id,st){
+  const m=DB.missions.find(x=>x.id===id);
+  if(!m)return;
+  m.st=st;
+  fbUpdateMission(id,{st});
+  // ao concluir → libera recursos de volta para Disponível
+  if(st==='CONCLUÍDA' && m.resources && m.resources.length){
+    syncResources(m.resources,'available');
+    addLog(`Recursos da missão <strong>${id}</strong> liberados`,'info');
+  }
+  renderMissions();metrics();
+  addLog(`Missão <strong>${id}</strong> marcada como ${st}`,'info');
+}
+function delMis(id){
+  const m=DB.missions.find(x=>x.id===id);
+  // ao remover missão ativa → libera recursos
+  if(m && m.st==='ATIVA' && m.resources && m.resources.length){
+    syncResources(m.resources,'available');
+  }
+  DB.missions=DB.missions.filter(m=>m.id!==id);
+  fbDeleteMission(id);
+  renderMissions();metrics();
+}
 function renderDashMis(){
   const el=document.getElementById('dash-mis');
   const a=DB.missions.filter(m=>m.st==='ATIVA').slice(0,4);
